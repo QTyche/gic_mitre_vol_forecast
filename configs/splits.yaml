@@ -1,0 +1,16 @@
+schema_version: 1
+split:
+  strategy: chronological
+  shuffle: false
+  require_forward_window_containment: true
+  purge_trading_days: 5
+  boundaries:
+    train:
+      start: 2010-01-01
+      end: 2020-12-31
+    validation:
+      start: 2021-01-01
+      end: 2023-12-31
+    test:
+      start: 2024-01-01
+      end: 2025-12-31

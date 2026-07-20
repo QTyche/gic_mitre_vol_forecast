@@ -1,0 +1,14 @@
+schema_version: 1
+experiment:
+  name: qrc_headline
+  seed: 2026
+  output_dir: results
+model:
+  kind: quantum_reservoir
+  status: not_implemented
+  qubits: 6
+  virtual_nodes: 2
+execution:
+  mode: not_implemented
+  shots: 1024
+

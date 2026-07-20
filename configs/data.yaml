@@ -1,0 +1,63 @@
+schema_version: 1
+experiment:
+  name: prepare_fixture_data
+  seed: 2026
+  output_dir: data/processed
+data:
+  mode: cached_csv
+  project_root: ..
+  raw_paths:
+    spy: data/raw/fixture_spy.csv
+    vix: data/raw/fixture_vix.csv
+    qqq: data/raw/fixture_qqq.csv
+  processed_path: data/processed
+  symbols:
+    spy: SPY
+    vix: ^VIX
+    qqq: QQQ
+  source_date_range:
+    start: 2009-11-02
+    end: 2026-01-09
+  observation_date_range:
+    start: 2010-01-01
+    end: 2025-12-31
+  required_columns:
+    - date
+    - spy_open
+    - spy_high
+    - spy_low
+    - spy_close
+    - spy_adjusted_close
+    - spy_volume
+    - vix_close
+    - qqq_close
+    - qqq_volume
+  features:
+    - spy_log_return_1d
+    - spy_return_5d
+    - spy_return_20d
+    - spy_rv_5d
+    - spy_rv_10d
+    - spy_rv_20d
+    - spy_parkinson_vol_5d
+    - spy_volume_zscore_20d
+    - spy_high_low_range
+    - vix_log_level
+    - vix_change_1d
+    - vix_change_5d
+    - qqq_log_return_1d
+    - qqq_rv_5d
+    - spy_qqq_return_spread
+    - day_of_week
+  targets:
+    definition_version: qtyche_volatility_regime_v1
+    primary_classification: target_regime_5d
+    primary_transition: target_transition
+    secondary_regression: target_rv_5d
+    horizon_trading_days: 5
+    annualization_factor: 252
+    regime_quantiles:
+      - 0.33
+      - 0.66
+  split_config: splits.yaml
+  missing_data_policy: drop_secondary_and_report

@@ -1,0 +1,14 @@
+schema_version: 1
+experiment:
+  name: qrc_smoke
+  seed: 2026
+  output_dir: results
+model:
+  kind: quantum_reservoir
+  status: interface_only
+  qubits: 4
+  virtual_nodes: 1
+execution:
+  mode: manifest_only
+  shots: exact
+
