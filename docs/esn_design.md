@@ -28,3 +28,9 @@ configuration, ordered feature names, dimensions, and measured spectral radius.
 This ESN is the principal classical reservoir control for the future QRC. Fair
 comparison requires identical processed inputs, split chronology, state policy,
 readout discipline, seeds/search budgets, and evaluation metrics.
+
+For realized-variance regression, the reservoir is unchanged but the readout
+target is configurable. `direct_variance` fits physical variance directly.
+`log_variance` fits `log(target + epsilon)` and inverts with
+`exp(score) - epsilon`. The selected transformation and epsilon are serialized;
+invalid forecasts remain visible to the evaluation floor accounting.

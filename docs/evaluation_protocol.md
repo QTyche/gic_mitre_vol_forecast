@@ -32,3 +32,10 @@ validation. Headline-capable commands reject them unless
 `--allow-synthetic-results` is explicit. An override never converts fixtures
 into financial evidence: manifests, tables, metrics, and figures remain marked
 `SYNTHETIC FIXTURE DATA — NOT A FINANCIAL PERFORMANCE RESULT`.
+
+Public-market acquisition, processing, and results use separate directories and
+explicit `public_market`/`false` source flags. ESN regression target
+transformations are selected on validation QLIKE only. The direct head remains
+in diagnostics; the log head is not chosen using test metrics. Public
+validation and test tables are generated separately and are not interpreted as
+tests of statistical superiority.

@@ -1,0 +1,76 @@
+schema_version: 1
+experiment:
+  name: prepare_public_market_data
+  seed: 2026
+  output_dir: data/processed/public_market
+data:
+  mode: download
+  data_source_type: public_market
+  is_synthetic: false
+  project_root: ..
+  snapshot:
+    id: yahoo_chart_20100101_20251231_v1
+    provider: yahoo_chart
+    manifest: data/raw/public_market/yahoo_chart_20100101_20251231_v1/snapshot_manifest.json
+  raw_paths:
+    spy: data/raw/public_market/yahoo_chart_20100101_20251231_v1/spy.csv
+    vix: data/raw/public_market/yahoo_chart_20100101_20251231_v1/vix.csv
+    qqq: data/raw/public_market/yahoo_chart_20100101_20251231_v1/qqq.csv
+  processed_path: data/processed/public_market
+  symbols:
+    spy: SPY
+    vix: ^VIX
+    qqq: QQQ
+  source_date_range:
+    start: 2010-01-01
+    end: 2025-12-31
+  observation_date_range:
+    start: 2010-01-01
+    end: 2025-12-31
+  required_columns:
+    - date
+    - spy_open
+    - spy_high
+    - spy_low
+    - spy_close
+    - spy_adjusted_close
+    - spy_volume
+    - vix_close
+    - qqq_close
+    - qqq_volume
+  features:
+    - spy_log_return_1d
+    - spy_return_5d
+    - spy_return_20d
+    - spy_rv_5d
+    - spy_rv_10d
+    - spy_rv_20d
+    - spy_parkinson_vol_5d
+    - spy_volume_zscore_20d
+    - spy_high_low_range
+    - vix_log_level
+    - vix_change_1d
+    - vix_change_5d
+    - qqq_log_return_1d
+    - qqq_rv_5d
+    - spy_qqq_return_spread
+    - day_of_week
+  targets:
+    definition_version: qtyche_volatility_regime_v1
+    primary_classification: target_regime_5d
+    primary_transition: target_transition
+    secondary_regression: target_rv_5d
+    horizon_trading_days: 5
+    annualization_factor: 252
+    regime_quantiles:
+      - 0.33
+      - 0.66
+  split_config: splits.yaml
+  missing_data_policy: drop_secondary_and_report
+  audit:
+    large_move_threshold: 0.20
+    fatal_conditions:
+      - duplicate_dates
+      - non_increasing_dates
+      - non_positive_prices
+      - ohlc_violations

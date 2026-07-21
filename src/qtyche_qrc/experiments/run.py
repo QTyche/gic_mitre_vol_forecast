@@ -24,10 +24,12 @@ from qtyche_qrc.evaluation.metrics import (
     classification_metrics,
     regression_metrics,
     transition_metrics,
+    transition_subgroup_metrics,
 )
 from qtyche_qrc.evaluation.plots import (
     SYNTHETIC_WARNING,
     plot_confusion_matrix,
+    plot_regression_diagnostics,
     plot_rv_series,
     plot_transition_calibration,
     plot_transition_series,
@@ -136,6 +138,12 @@ def _classification_predictions(
         transition_threshold,
     )
     metrics = {**class_metrics, **transition_values}
+    metrics["transition_subgroups"] = transition_subgroup_metrics(
+        split.y_regime,
+        split.current_regime,
+        probabilities,
+        transition_threshold,
+    )
     predictions = pd.DataFrame(
         {
             "date": pd.to_datetime(split.dates).strftime("%Y-%m-%d"),
@@ -301,7 +309,9 @@ def _regression_predictions(
         {
             "date": pd.to_datetime(split.dates).strftime("%Y-%m-%d"),
             "true_rv_5d": split.y_rv,
+            "raw_predicted_rv_5d": raw_predictions,
             "predicted_rv_5d": evaluated.predictions,
+            "prediction_was_negative": (raw_predictions < 0).astype(int),
             "prediction_was_floored": evaluated.floored.astype(int),
         }
     )
@@ -404,6 +414,11 @@ def run_baseline_experiment(
                 experiment_dir / "figures" / "realized_variance.png",
                 data.is_synthetic,
             )
+            plot_regression_diagnostics(
+                test_predictions,
+                experiment_dir / "figures",
+                data.is_synthetic,
+            )
 
         if not trials:
             validation_score = float(validation_metrics[config.selection_metric])
@@ -459,6 +474,11 @@ def run_baseline_experiment(
             "task": config.task,
             "configuration_checksum": _sha256(experiment_dir / "config.yaml"),
             "processed_data_checksums": data.processed_checksums,
+            "data_manifest_checksum": data.processed_checksums.get("data_manifest.json"),
+            "data_snapshot_id": data.manifest.get("source_snapshot_id"),
+            "source_snapshot_manifest_checksum": data.manifest.get(
+                "source_snapshot_manifest_checksum"
+            ),
             "data_source_type": data.data_source_type,
             "is_synthetic": data.is_synthetic,
             "data_warning": warning,
@@ -514,7 +534,17 @@ def evaluate_experiment(experiment_dir: Path) -> dict[str, Any]:
                 frame["current_regime"].to_numpy(dtype=int),
                 threshold,
             )
-            metrics = {**class_values, **transition_values}
+            subgroup_values = transition_subgroup_metrics(
+                frame["true_regime"].to_numpy(dtype=int),
+                frame["current_regime"].to_numpy(dtype=int),
+                probabilities,
+                threshold,
+            )
+            metrics = {
+                **class_values,
+                **transition_values,
+                "transition_subgroups": subgroup_values,
+            }
         else:
             evaluated = regression_metrics(
                 frame["true_rv_5d"].to_numpy(dtype=float),

@@ -34,8 +34,11 @@ qtyche-qrc = "qtyche_qrc.cli:main"
 where = ["src"]
 
 [tool.pytest.ini_options]
-addopts = "-ra --strict-markers"
+addopts = "-ra --strict-markers -m 'not network'"
 testpaths = ["tests"]
+markers = [
+  "network: live provider integration tests excluded from the default offline suite",
+]
 
 [tool.ruff]
 extend-exclude = [".uv-cache", ".venv"]

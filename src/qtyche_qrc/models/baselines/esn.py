@@ -27,6 +27,8 @@ class ESNConfig:
     ridge_alpha: float = 1e-3
     seed: int = 0
     state_policy: str = "carry_inputs"
+    target_transform: str = "direct_variance"
+    transform_epsilon: float = 1e-12
 
     def validate(self) -> None:
         if self.reservoir_size <= 0:
@@ -41,6 +43,10 @@ class ESNConfig:
             raise ValueError("washout must be non-negative and ridge_alpha positive")
         if self.state_policy not in {"reset", "carry_inputs"}:
             raise ValueError("state_policy must be reset or carry_inputs")
+        if self.target_transform not in {"direct_variance", "log_variance"}:
+            raise ValueError("target_transform must be direct_variance or log_variance")
+        if self.transform_epsilon <= 0:
+            raise ValueError("transform_epsilon must be positive")
 
 
 class ESNReservoir:
@@ -110,7 +116,9 @@ class ESNReservoir:
         leaking_rate = self.config.leaking_rate
         for index, input_row in enumerate(values):
             augmented = np.concatenate(([1.0], input_row))
-            candidate = np.tanh(self.W_in @ augmented + self.W_res @ self._state)
+            input_signal = np.einsum("ij,j->i", self.W_in, augmented)
+            recurrent_signal = np.einsum("ij,j->i", self.W_res, self._state)
+            candidate = np.tanh(input_signal + recurrent_signal)
             self._state = (1.0 - leaking_rate) * self._state + leaking_rate * candidate
             states[index] = self._state
         return states
@@ -167,6 +175,43 @@ def _softmax(scores: NDArray[np.float64]) -> NDArray[np.float64]:
     shifted = scores - np.max(scores, axis=1, keepdims=True)
     exponentials = np.exp(shifted)
     return np.asarray(exponentials / exponentials.sum(axis=1, keepdims=True), dtype=float)
+
+
+def transform_variance_targets(
+    targets: NDArray[np.float64], transform: str, epsilon: float
+) -> NDArray[np.float64]:
+    """Transform positive realized-variance labels for the configured readout head."""
+
+    values = np.asarray(targets, dtype=float)
+    if not np.isfinite(values).all() or np.any(values <= 0):
+        raise ValueError("ESN variance targets must be finite and strictly positive")
+    if epsilon <= 0:
+        raise ValueError("transform epsilon must be positive")
+    if transform == "direct_variance":
+        return values.copy()
+    if transform == "log_variance":
+        return np.asarray(np.log(values + epsilon), dtype=float)
+    raise ValueError(f"unsupported ESN variance target transform: {transform}")
+
+
+def inverse_variance_targets(
+    predictions: NDArray[np.float64], transform: str, epsilon: float
+) -> NDArray[np.float64]:
+    """Return physical-unit variance forecasts without hiding invalid values."""
+
+    values = np.asarray(predictions, dtype=float)
+    if not np.isfinite(values).all():
+        raise ValueError("ESN transformed predictions must be finite")
+    if epsilon <= 0:
+        raise ValueError("transform epsilon must be positive")
+    if transform == "direct_variance":
+        return values.copy()
+    if transform == "log_variance":
+        restored = np.exp(values) - epsilon
+        if not np.isfinite(restored).all():
+            raise ValueError("inverse log-variance transformation produced non-finite values")
+        return np.asarray(restored, dtype=float)
+    raise ValueError(f"unsupported ESN variance target transform: {transform}")
 
 
 class ESNClassifier(ForecastClassifier):
@@ -273,7 +318,7 @@ class ESNClassifier(ForecastClassifier):
 
 
 class ESNRegressor(ForecastRegressor):
-    """ESN reservoir with a physical-unit ridge realized-variance readout."""
+    """ESN reservoir with configurable direct or log-variance ridge readout."""
 
     def __init__(self, feature_names: tuple[str, ...], config: ESNConfig) -> None:
         self.feature_names = feature_names
@@ -286,8 +331,13 @@ class ESNRegressor(ForecastRegressor):
         start = self.config.washout
         if len(states) != len(targets) or start >= len(states):
             raise ValueError("ESN regression states/targets are invalid after washout")
+        transformed = transform_variance_targets(
+            targets,
+            self.config.target_transform,
+            self.config.transform_epsilon,
+        )
         self.readout = _ridge_readout(
-            states[start:], targets[start:, None], self.config.ridge_alpha
+            states[start:], transformed[start:, None], self.config.ridge_alpha
         ).reshape(-1)
         self.training_timestamp = utc_now()
 
@@ -300,10 +350,18 @@ class ESNRegressor(ForecastRegressor):
     ) -> NDArray[np.float64]:
         return self.reservoir.transform_sequence(features, reset=reset)
 
-    def predict_from_states(self, states: NDArray[np.float64]) -> NDArray[np.float64]:
+    def predict_readout_from_states(self, states: NDArray[np.float64]) -> NDArray[np.float64]:
         if self.readout is None:
             raise RuntimeError("ESN regressor is not fitted")
         return np.asarray(np.einsum("ij,j->i", _design(states), self.readout), dtype=float)
+
+    def predict_from_states(self, states: NDArray[np.float64]) -> NDArray[np.float64]:
+        raw = self.predict_readout_from_states(states)
+        return inverse_variance_targets(
+            raw,
+            self.config.target_transform,
+            self.config.transform_epsilon,
+        )
 
     def predict(self, features: NDArray[np.float64]) -> NDArray[np.float64]:
         states = self.reservoir.transform_sequence(features, reset=True)
@@ -338,6 +396,13 @@ class ESNRegressor(ForecastRegressor):
             },
             "measured_spectral_radius": self.reservoir.measured_spectral_radius,
             "state_policy": self.config.state_policy,
+            "target_transformation": {
+                "name": self.config.target_transform,
+                "epsilon": self.config.transform_epsilon,
+                "inverse": "identity"
+                if self.config.target_transform == "direct_variance"
+                else "exp(prediction) - epsilon",
+            },
             "package_versions": package_versions("numpy"),
         }
 

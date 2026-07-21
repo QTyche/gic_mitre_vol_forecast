@@ -17,6 +17,133 @@ class DataValidationError(ValueError):
     """Raised when market inputs or processed outputs violate the data contract."""
 
 
+def _date_strings(values: pd.Series[Any]) -> list[str]:
+    return pd.to_datetime(values).dt.strftime("%Y-%m-%d").tolist()
+
+
+def audit_raw_market_frames(
+    raw_frames: dict[str, pd.DataFrame],
+    *,
+    large_move_threshold: float,
+    fatal_conditions: tuple[str, ...] = (),
+) -> dict[str, Any]:
+    """Inspect raw observations without repairing, sorting, or filling values."""
+
+    parsed: dict[str, pd.DataFrame] = {}
+    instruments: dict[str, Any] = {}
+    duplicate_total = 0
+    non_increasing_count = 0
+    missing_total = 0
+    for name, source in raw_frames.items():
+        frame = source.copy()
+        frame["date"] = pd.to_datetime(frame["date"], format="%Y-%m-%d", errors="raise")
+        parsed[name] = frame
+        duplicate_count = int(frame["date"].duplicated().sum())
+        non_increasing = not frame["date"].is_monotonic_increasing
+        missing = {key: int(value) for key, value in frame.isna().sum().items() if value}
+        weekend_dates = _date_strings(frame.loc[frame["date"].dt.dayofweek.ge(5), "date"])
+        duplicate_total += duplicate_count
+        non_increasing_count += int(non_increasing)
+        missing_total += sum(missing.values())
+        instruments[name] = {
+            "rows": len(frame),
+            "actual_date_range": {
+                "start": frame["date"].min().date().isoformat(),
+                "end": frame["date"].max().date().isoformat(),
+            },
+            "duplicate_dates": duplicate_count,
+            "non_increasing_dates": non_increasing,
+            "missing_values": missing,
+            "weekend_count": len(weekend_dates),
+            "weekend_dates_sample": weekend_dates[:20],
+        }
+
+    spy = parsed["spy"]
+    qqq = parsed["qqq"]
+    vix = parsed["vix"]
+    spy_dates = set(spy["date"])
+    qqq_dates = set(qqq["date"])
+    vix_dates = set(vix["date"])
+    date_alignment = {
+        "spy_missing_qqq": sorted(value.date().isoformat() for value in spy_dates - qqq_dates),
+        "spy_missing_vix": sorted(value.date().isoformat() for value in spy_dates - vix_dates),
+        "vix_not_spy": sorted(value.date().isoformat() for value in vix_dates - spy_dates),
+        "qqq_not_spy": sorted(value.date().isoformat() for value in qqq_dates - spy_dates),
+    }
+
+    price_columns = {
+        "spy": ["open", "high", "low", "close", "adjusted_close"],
+        "qqq": ["close"],
+        "vix": ["close"],
+    }
+    zero_prices: dict[str, int] = {}
+    negative_prices: dict[str, int] = {}
+    for name, columns in price_columns.items():
+        zero_prices[name] = int(parsed[name][columns].eq(0).sum().sum())
+        negative_prices[name] = int(parsed[name][columns].lt(0).sum().sum())
+    non_positive_volume = {
+        "spy": int(spy["volume"].le(0).sum()),
+        "qqq": int(qqq["volume"].le(0).sum()),
+    }
+    ohlc_masks = {
+        "high_below_low": spy["high"].lt(spy["low"]),
+        "high_below_open": spy["high"].lt(spy["open"]),
+        "high_below_close": spy["high"].lt(spy["close"]),
+        "low_above_open": spy["low"].gt(spy["open"]),
+        "low_above_close": spy["low"].gt(spy["close"]),
+    }
+    ohlc = {
+        name: {
+            "count": int(mask.sum()),
+            "dates_sample": _date_strings(spy.loc[mask, "date"])[:20],
+        }
+        for name, mask in ohlc_masks.items()
+    }
+    ohlc_violation_count = sum(int(mask.sum()) for mask in ohlc_masks.values())
+    moves = spy["close"].pct_change().abs()
+    large_move_mask = moves.gt(large_move_threshold)
+    large_moves = [
+        {"date": date.date().isoformat(), "absolute_return": float(value)}
+        for date, value in zip(spy.loc[large_move_mask, "date"], moves.loc[large_move_mask])
+    ]
+    adjusted_difference = (spy["adjusted_close"] / spy["close"] - 1.0).abs()
+    adjusted = {
+        "discrepant_rows": int(adjusted_difference.gt(1e-10).sum()),
+        "maximum_absolute_relative_difference": float(adjusted_difference.max()),
+        "median_absolute_relative_difference": float(adjusted_difference.median()),
+    }
+    condition_counts = {
+        "duplicate_dates": duplicate_total,
+        "non_increasing_dates": non_increasing_count,
+        "missing_required_values": missing_total,
+        "non_positive_prices": sum(zero_prices.values()) + sum(negative_prices.values()),
+        "non_positive_volume": sum(non_positive_volume.values()),
+        "ohlc_violations": ohlc_violation_count,
+    }
+    fatal_hits = {name: condition_counts.get(name, 0) for name in fatal_conditions}
+    fatal_hits = {name: count for name, count in fatal_hits.items() if count}
+    report = {
+        "instruments": instruments,
+        "date_alignment": {
+            name: {"count": len(dates), "dates_sample": dates[:20]}
+            for name, dates in date_alignment.items()
+        },
+        "zero_prices": zero_prices,
+        "negative_prices": negative_prices,
+        "non_positive_volume": non_positive_volume,
+        "ohlc_consistency": ohlc,
+        "large_move_threshold": large_move_threshold,
+        "large_one_day_moves": {"count": len(large_moves), "observations": large_moves},
+        "adjusted_close_vs_close": adjusted,
+        "condition_counts": condition_counts,
+        "fatal_conditions": list(fatal_conditions),
+        "fatal_hits": fatal_hits,
+    }
+    if fatal_hits:
+        raise DataValidationError(f"fatal raw-market audit conditions: {fatal_hits}")
+    return report
+
+
 def _validate_raw_frame(frame: pd.DataFrame, name: str) -> pd.DataFrame:
     result = frame.copy()
     try:
@@ -113,6 +240,8 @@ def validate_canonical_table(frame: pd.DataFrame) -> None:
         raise DataValidationError("market volume must be non-negative")
     if frame["spy_high"].lt(frame[["spy_open", "spy_close"]].max(axis=1)).any():
         raise DataValidationError("SPY high is below open or close")
+    if frame["spy_high"].lt(frame["spy_low"]).any():
+        raise DataValidationError("SPY high is below low")
     if frame["spy_low"].gt(frame[["spy_open", "spy_close"]].min(axis=1)).any():
         raise DataValidationError("SPY low is above open or close")
 

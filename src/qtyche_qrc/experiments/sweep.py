@@ -3,12 +3,18 @@
 from __future__ import annotations
 
 import itertools
+import time
+import warnings
 from dataclasses import asdict, dataclass
 from typing import Any
 
 import numpy as np
 
-from qtyche_qrc.evaluation.metrics import classification_metrics, regression_metrics
+from qtyche_qrc.evaluation.metrics import (
+    classification_metrics,
+    regression_metrics,
+    transition_metrics,
+)
 from qtyche_qrc.models.baselines.esn import (
     ESNClassifier,
     ESNConfig,
@@ -29,6 +35,14 @@ class CandidateResult:
     validation_score: float | None
     status: str
     error: str | None = None
+    validation_transition_pr_auc: float | None = None
+    training_seconds: float | None = None
+    prediction_seconds: float | None = None
+    reservoir_state_dimension: int | None = None
+    measured_spectral_radius: float | None = None
+    numerical_warnings: str | None = None
+    negative_prediction_count: int | None = None
+    floored_prediction_count: int | None = None
 
 
 def deterministic_candidates(
@@ -122,23 +136,46 @@ def search_esn_classifier(
         deterministic_candidates(base, space, maximum_trials, seed), start=1
     ):
         try:
-            config = _esn_config(params, seed)
-            model = ESNClassifier(data.feature_names, config)
-            train_states, validation_states, _ = split_reservoir_states(
-                model.reservoir,
-                data.train.X,
-                data.validation.X,
-                None,
-                config.state_policy,
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                config = _esn_config(params, seed)
+                model = ESNClassifier(data.feature_names, config)
+                started = time.perf_counter()
+                train_states, validation_states, _ = split_reservoir_states(
+                    model.reservoir,
+                    data.train.X,
+                    data.validation.X,
+                    None,
+                    config.state_policy,
+                )
+                model.fit_readout(train_states, data.train.y_regime)
+                training_seconds = time.perf_counter() - started
+                started = time.perf_counter()
+                probabilities = model.predict_proba_from_states(validation_states)
+                prediction_seconds = time.perf_counter() - started
+                score = float(
+                    classification_metrics(data.validation.y_regime, probabilities)["macro_f1"]
+                )
+                transition_values, _, _ = transition_metrics(
+                    data.validation.y_transition,
+                    probabilities,
+                    data.validation.current_regime,
+                )
+            results.append(
+                CandidateResult(
+                    trial,
+                    params,
+                    "macro_f1",
+                    score,
+                    "success",
+                    validation_transition_pr_auc=float(transition_values["transition_pr_auc"]),
+                    training_seconds=training_seconds,
+                    prediction_seconds=prediction_seconds,
+                    reservoir_state_dimension=config.reservoir_size,
+                    measured_spectral_radius=model.reservoir.measured_spectral_radius,
+                    numerical_warnings=" | ".join(str(item.message) for item in caught) or None,
+                )
             )
-            model.fit_readout(train_states, data.train.y_regime)
-            score = float(
-                classification_metrics(
-                    data.validation.y_regime,
-                    model.predict_proba_from_states(validation_states),
-                )["macro_f1"]
-            )
-            results.append(CandidateResult(trial, params, "macro_f1", score, "success"))
         except Exception as exc:
             results.append(CandidateResult(trial, params, "macro_f1", None, "failure", str(exc)))
     return select_candidate(results, "macro_f1", minimize=False), results
@@ -159,24 +196,45 @@ def search_esn_regressor(
         deterministic_candidates(base, space, maximum_trials, seed), start=1
     ):
         try:
-            config = _esn_config(params, seed)
-            model = ESNRegressor(data.feature_names, config)
-            train_states, validation_states, _ = split_reservoir_states(
-                model.reservoir,
-                data.train.X,
-                data.validation.X,
-                None,
-                config.state_policy,
-            )
-            model.fit_readout(train_states, data.train.y_rv)
-            score = float(
-                regression_metrics(
+            with warnings.catch_warnings(record=True) as caught:
+                warnings.simplefilter("always")
+                config = _esn_config(params, seed)
+                model = ESNRegressor(data.feature_names, config)
+                started = time.perf_counter()
+                train_states, validation_states, _ = split_reservoir_states(
+                    model.reservoir,
+                    data.train.X,
+                    data.validation.X,
+                    None,
+                    config.state_policy,
+                )
+                model.fit_readout(train_states, data.train.y_rv)
+                training_seconds = time.perf_counter() - started
+                started = time.perf_counter()
+                predictions = model.predict_from_states(validation_states)
+                prediction_seconds = time.perf_counter() - started
+                evaluated = regression_metrics(
                     data.validation.y_rv,
-                    model.predict_from_states(validation_states),
+                    predictions,
                     variance_floor,
-                ).metrics["qlike"]
+                )
+                score = float(evaluated.metrics["qlike"])
+            results.append(
+                CandidateResult(
+                    trial,
+                    params,
+                    "qlike",
+                    score,
+                    "success",
+                    training_seconds=training_seconds,
+                    prediction_seconds=prediction_seconds,
+                    reservoir_state_dimension=config.reservoir_size,
+                    measured_spectral_radius=model.reservoir.measured_spectral_radius,
+                    numerical_warnings=" | ".join(str(item.message) for item in caught) or None,
+                    negative_prediction_count=int(np.sum(predictions < 0)),
+                    floored_prediction_count=int(evaluated.floored.sum()),
+                )
             )
-            results.append(CandidateResult(trial, params, "qlike", score, "success"))
         except Exception as exc:
             results.append(CandidateResult(trial, params, "qlike", None, "failure", str(exc)))
     return select_candidate(results, "qlike", minimize=True), results

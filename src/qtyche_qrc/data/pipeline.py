@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 
 from qtyche_qrc.data.config import DataPreparationConfig
-from qtyche_qrc.data.download import load_raw_frames, sha256_file
+from qtyche_qrc.data.download import load_raw_frames, sha256_file, verify_public_snapshot
 from qtyche_qrc.data.features import build_features, ensure_sufficient_rows
 from qtyche_qrc.data.preprocessing import TrainStandardizer
 from qtyche_qrc.data.splits import (
@@ -27,7 +27,11 @@ from qtyche_qrc.data.targets import (
     add_regime_and_transition_targets,
     fit_regime_thresholds,
 )
-from qtyche_qrc.data.validation import DataValidationError, align_on_spy_calendar
+from qtyche_qrc.data.validation import (
+    DataValidationError,
+    align_on_spy_calendar,
+    audit_raw_market_frames,
+)
 
 
 @dataclass(frozen=True)
@@ -67,6 +71,27 @@ def _git_commit(project_root: Path) -> str | None:
         ).stdout.strip()
     except (FileNotFoundError, subprocess.CalledProcessError):
         return None
+
+
+def _git_dirty(project_root: Path) -> bool | None:
+    try:
+        return bool(
+            subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=project_root,
+                check=True,
+                capture_output=True,
+                text=True,
+            ).stdout.strip()
+        )
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        return None
+
+
+def _manifest_path(path: Path, project_root: Path, *, relative: bool) -> str:
+    if relative:
+        return path.relative_to(project_root).as_posix()
+    return str(path)
 
 
 def _date_summary(frame: pd.DataFrame) -> dict[str, str | None]:
@@ -110,16 +135,64 @@ def _scaled_output(
     return output
 
 
+def _split_statistics(frame: pd.DataFrame) -> dict[str, Any]:
+    statistics: dict[str, Any] = {}
+    for split_name in ("train", "validation", "test"):
+        rows = frame.loc[frame["split"].eq(split_name)]
+        regimes = rows["target_regime_5d"].value_counts().sort_index()
+        target = rows["target_rv_5d"]
+        statistics[split_name] = {
+            "regime_counts": {str(label): int(regimes.get(label, 0)) for label in (0, 1, 2)},
+            "regime_percentages": {
+                str(label): float(regimes.get(label, 0) / len(rows)) for label in (0, 1, 2)
+            },
+            "transition_count": int(rows["target_transition"].sum()),
+            "transition_rate": float(rows["target_transition"].mean()),
+            "upward_transition_count": int(rows["target_upward_transition"].sum()),
+            "upward_transition_rate": float(rows["target_upward_transition"].mean()),
+            "downward_transition_count": int(rows["target_downward_transition"].sum()),
+            "downward_transition_rate": float(rows["target_downward_transition"].mean()),
+            "target_rv_5d": {
+                "mean": float(target.mean()),
+                "median": float(target.median()),
+                "standard_deviation": float(target.std(ddof=0)),
+                "minimum": float(target.min()),
+                "maximum": float(target.max()),
+                "quantiles": {
+                    str(value): float(target.quantile(value))
+                    for value in (0.01, 0.05, 0.25, 0.75, 0.95, 0.99)
+                },
+            },
+        }
+    return statistics
+
+
 def prepare_data(config: DataPreparationConfig) -> PreparationResult:
     """Build all unscaled/scaled splits, fit artifacts, manifests, and quality reports."""
 
     generated_at = datetime.now(timezone.utc).isoformat()
     raw_frames = load_raw_frames(config)
+    raw_market_audit = audit_raw_market_frames(
+        raw_frames,
+        large_move_threshold=config.large_move_threshold,
+        fatal_conditions=config.fatal_audit_conditions,
+    )
+    snapshot_manifest: dict[str, Any] | None = None
+    snapshot_manifest_checksum: str | None = None
+    if config.data_source_type == "public_market":
+        snapshot_manifest = verify_public_snapshot(config)
+        if config.snapshot_manifest_path is None:
+            raise DataValidationError("public data configuration has no snapshot manifest")
+        snapshot_manifest_checksum = sha256_file(config.snapshot_manifest_path)
     raw_source_metadata: dict[str, Any] = {}
     for name, frame in raw_frames.items():
         parsed_dates = pd.to_datetime(frame["date"], errors="raise")
         raw_source_metadata[name] = {
-            "path": str(config.raw_paths[name]),
+            "path": _manifest_path(
+                config.raw_paths[name],
+                config.project_root,
+                relative=config.data_source_type == "public_market",
+            ),
             "sha256": sha256_file(config.raw_paths[name]),
             "rows": len(frame),
             "date_range": {
@@ -155,6 +228,17 @@ def prepare_data(config: DataPreparationConfig) -> PreparationResult:
     constructed.loc[:, list(config.feature_names)] = constructed.loc[
         :, list(config.feature_names)
     ].replace([np.inf, -np.inf], np.nan)
+    complete_feature_mask = constructed.loc[:, list(config.feature_names)].notna().all(axis=1)
+    complete_target_mask = constructed[["target_rv_5d", "target_window_end"]].notna().all(axis=1)
+    earliest_valid_feature_date = (
+        constructed.loc[complete_feature_mask, "date"].min().date().isoformat()
+    )
+    latest_valid_target_date = (
+        constructed.loc[complete_target_mask, "date"].max().date().isoformat()
+    )
+    latest_target_window_end = (
+        constructed.loc[complete_target_mask, "target_window_end"].max().date().isoformat()
+    )
 
     source_feature_warmup = int(
         constructed.loc[:, list(config.feature_names)].isna().any(axis=1).sum()
@@ -240,6 +324,7 @@ def prepare_data(config: DataPreparationConfig) -> PreparationResult:
         "generation_timestamp": generated_at,
         "status": "passed",
         "alignment": alignment_report,
+        "raw_market_audit": raw_market_audit,
         "construction": {
             "canonical_rows_in_source_range": len(canonical),
             "rows_outside_configured_source_range": rows_outside_source_range,
@@ -249,6 +334,9 @@ def prepare_data(config: DataPreparationConfig) -> PreparationResult:
             "rows_removed_missing_features": rows_removed_missing_features,
             "rows_removed_missing_targets": rows_removed_missing_targets,
             "missing_value_counts_before_filter": missing_before_filter,
+            "earliest_valid_feature_date": earliest_valid_feature_date,
+            "latest_valid_forward_target_observation_date": latest_valid_target_date,
+            "latest_valid_forward_target_window_end": latest_target_window_end,
         },
         "splitting": split_report,
         "output_missing_value_counts": output_missing_counts,
@@ -268,39 +356,75 @@ def prepare_data(config: DataPreparationConfig) -> PreparationResult:
         "features_unscaled": len(unscaled),
         **{name: len(frame) for name, frame in scaled_frames.items()},
     }
+    split_statistics = _split_statistics(labeled)
+    core_processed_names = (
+        "features_unscaled",
+        "train",
+        "validation",
+        "test",
+        "preprocessing",
+        "regime_thresholds",
+    )
+    processed_checksums = {
+        output_paths[name].name: sha256_file(output_paths[name]) for name in core_processed_names
+    }
+    relative_paths = config.data_source_type == "public_market"
     data_manifest: dict[str, Any] = {
         "schema_version": 1,
         "generation_timestamp": generated_at,
         "git_commit_hash": _git_commit(config.project_root),
+        "git_dirty": _git_dirty(config.project_root),
         "data_mode": config.mode,
+        "data_source_type": config.data_source_type,
+        "is_synthetic": config.is_synthetic,
+        "source_snapshot_id": config.snapshot_id,
+        "source_snapshot_manifest_checksum": snapshot_manifest_checksum,
+        "source_snapshot": snapshot_manifest,
+        "requested_date_range": {
+            "start": config.source_dates.start.isoformat(),
+            "end": config.source_dates.end.isoformat(),
+        },
         "source_files": raw_source_metadata,
-        "source_file_paths": {name: str(path) for name, path in config.raw_paths.items()},
+        "source_file_paths": {
+            name: _manifest_path(path, config.project_root, relative=relative_paths)
+            for name, path in config.raw_paths.items()
+        },
         "source_checksums": {
             name: metadata["sha256"] for name, metadata in raw_source_metadata.items()
         },
         "date_ranges": date_ranges,
         "row_counts": row_counts,
+        "split_row_counts": {name: len(frame) for name, frame in scaled_frames.items()},
         "feature_names": list(config.feature_names),
         "target_names": list(TARGET_NAMES),
         "target_definition_version": config.target_definition_version,
         "split_boundaries": split_boundaries,
         "purge_trading_days": config.purge_trading_days,
+        "purged_dates": split_report["purged_forward_window_dates"],
         "regime_thresholds": threshold_document,
+        "split_statistics": split_statistics,
+        "preprocessing_parameters_checksum": processed_checksums["preprocessing.json"],
+        "processed_checksums": processed_checksums,
         "missing_value_counts": {
             "before_filter": missing_before_filter,
             "outputs": output_missing_counts,
         },
         "configuration_file_used": {
             "data": {
-                "path": str(config.source),
+                "path": _manifest_path(config.source, config.project_root, relative=relative_paths),
                 "sha256": sha256_file(config.source),
             },
             "splits": {
-                "path": str(config.split_source),
+                "path": _manifest_path(
+                    config.split_source, config.project_root, relative=relative_paths
+                ),
                 "sha256": sha256_file(config.split_source),
             },
         },
-        "output_paths": {name: str(path) for name, path in output_paths.items()},
+        "output_paths": {
+            name: _manifest_path(path, config.project_root, relative=relative_paths)
+            for name, path in output_paths.items()
+        },
     }
     _write_json(output_paths["data_quality_report"], quality_report)
     _write_json(output_paths["data_manifest"], data_manifest)

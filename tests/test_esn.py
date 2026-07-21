@@ -1,3 +1,4 @@
+import warnings
 from pathlib import Path
 
 import numpy as np
@@ -42,6 +43,18 @@ def test_esn_states_have_expected_dimensions() -> None:
 
     assert states.shape == (12, 9)
     assert reservoir.get_state().shape == (9,)
+
+
+def test_long_esn_sequence_emits_no_numerical_warnings() -> None:
+    reservoir = ESNReservoir(3, _config())
+    features = np.random.default_rng(77).normal(size=(4_100, 3))
+
+    with warnings.catch_warnings(record=True) as caught:
+        warnings.simplefilter("always")
+        states = reservoir.transform_sequence(features, reset=True)
+
+    assert np.isfinite(states).all()
+    assert not [item for item in caught if issubclass(item.category, RuntimeWarning)]
 
 
 def test_esn_serialization_preserves_predictions(tmp_path: Path) -> None:

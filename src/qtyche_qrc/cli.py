@@ -5,16 +5,23 @@ from __future__ import annotations
 import argparse
 import json
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 
 from qtyche_qrc.config import ConfigError, load_config
 from qtyche_qrc.data.config import load_data_config
+from qtyche_qrc.data.description import describe_public_data
+from qtyche_qrc.data.download import download_public_snapshot
 from qtyche_qrc.data.fixtures import create_or_verify_fixture_snapshots, fixture_summary
 from qtyche_qrc.data.pipeline import inspect_processed_targets, prepare_data
 from qtyche_qrc.data.validation import DataValidationError, audit_processed_data
 from qtyche_qrc.experiments.compare import compare_baselines
+from qtyche_qrc.experiments.esn_regression_diagnostics import (
+    run_esn_regression_diagnostics,
+)
 from qtyche_qrc.experiments.manifest import create_manifest
 from qtyche_qrc.experiments.model_config import load_model_config
+from qtyche_qrc.experiments.public_compare import compare_public_baselines
 from qtyche_qrc.experiments.run import (
     SyntheticResultsError,
     evaluate_experiment,
@@ -45,11 +52,27 @@ def build_parser() -> argparse.ArgumentParser:
     )
     fixture.add_argument("--config", required=True, help="path to the data YAML configuration")
 
+    public_download = subparsers.add_parser(
+        "download-public-data",
+        help="download or verify an immutable versioned public-market snapshot",
+    )
+    public_download.add_argument("--config", required=True)
+    public_download.add_argument(
+        "--force",
+        action="store_true",
+        help="explicitly replace an existing snapshot after redownloading all instruments",
+    )
+
     prepare = subparsers.add_parser(
         "prepare-data",
         help="prepare causal features, targets, purged splits, and manifests",
     )
     prepare.add_argument("--config", required=True, help="path to the data YAML configuration")
+    prepare.add_argument(
+        "--cached",
+        action="store_true",
+        help="require the configured public snapshot and perform no network requests",
+    )
 
     audit = subparsers.add_parser("audit-data", help="audit persisted processed data")
     audit.add_argument("--processed-dir", required=True, help="processed data directory")
@@ -59,6 +82,12 @@ def build_parser() -> argparse.ArgumentParser:
         help="show regime and transition target distributions",
     )
     inspect.add_argument("--processed-dir", required=True, help="processed data directory")
+
+    describe = subparsers.add_parser(
+        "describe-data", help="write public-market descriptive tables and figures"
+    )
+    describe.add_argument("--processed-dir", required=True)
+    describe.add_argument("--output-dir")
 
     for command, help_text in (
         ("train-baseline", "train, validate, and test one configured baseline"),
@@ -88,10 +117,24 @@ def build_parser() -> argparse.ArgumentParser:
         help="retain only the latest experiment for each task/seed/model tuple",
     )
 
+    compare_public = subparsers.add_parser(
+        "compare-public-baselines",
+        help="write public-market comparison and diagnostic tables",
+    )
+    compare_public.add_argument("--results-dir", required=True)
+    compare_public.add_argument("--output-dir", required=True)
+
     inspect_experiment_parser = subparsers.add_parser(
         "inspect-experiment", help="inspect experiment provenance and metrics"
     )
     inspect_experiment_parser.add_argument("--experiment-dir", required=True)
+
+    diagnose = subparsers.add_parser(
+        "diagnose-esn-regression",
+        help="select and audit an ESN variance head using validation data only",
+    )
+    diagnose.add_argument("--config", required=True)
+    diagnose.add_argument("--output-dir", required=True)
 
     return parser
 
@@ -119,8 +162,17 @@ def main(argv: Sequence[str] | None = None) -> int:
             for name, path in paths.items():
                 print(f"{name}: {path}")
             return 0
+        if args.command == "download-public-data":
+            data_config = load_data_config(args.config)
+            manifest = download_public_snapshot(data_config, force=args.force)
+            print(json.dumps(manifest, indent=2, sort_keys=True))
+            return 0
         if args.command == "prepare-data":
             data_config = load_data_config(args.config)
+            if args.cached:
+                if data_config.data_source_type != "public_market":
+                    raise ValueError("--cached is only valid for public-market data")
+                data_config = replace(data_config, mode="cached_csv")
             result = prepare_data(data_config)
             construction = result.quality_report["construction"]
             splitting = result.quality_report["splitting"]
@@ -142,6 +194,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0
         if args.command == "inspect-targets":
             summary = inspect_processed_targets(Path(args.processed_dir).resolve())
+            print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+        if args.command == "describe-data":
+            output_dir = Path(args.output_dir).resolve() if args.output_dir else None
+            summary = describe_public_data(Path(args.processed_dir), output_dir)
             print(json.dumps(summary, indent=2, sort_keys=True))
             return 0
         if args.command in {"train-baseline", "search-baseline"}:
@@ -166,8 +223,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             print(f"validation comparison: {validation_path}")
             print(f"test comparison: {test_path}")
             return 0
+        if args.command == "compare-public-baselines":
+            outputs = compare_public_baselines(
+                Path(args.results_dir).resolve(), Path(args.output_dir).resolve()
+            )
+            print(json.dumps({key: str(value) for key, value in outputs.items()}, indent=2))
+            return 0
         if args.command == "inspect-experiment":
             summary = inspect_experiment(Path(args.experiment_dir).resolve())
+            print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+        if args.command == "diagnose-esn-regression":
+            summary = run_esn_regression_diagnostics(
+                Path(args.config), Path(args.output_dir).resolve()
+            )
             print(json.dumps(summary, indent=2, sort_keys=True))
             return 0
     except (

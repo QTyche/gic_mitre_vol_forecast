@@ -1,0 +1,33 @@
+{
+  "data_source_type": "public_market",
+  "files": {
+    "qqq": {
+      "actual_end": "2025-12-31",
+      "actual_start": "2010-01-04",
+      "rows": 4024,
+      "sha256": "061564a4e18b7d92e95921d593d4bd7e876e687b0aa6d944312b98e38f298136",
+      "symbol": "QQQ"
+    },
+    "spy": {
+      "actual_end": "2025-12-31",
+      "actual_start": "2010-01-04",
+      "rows": 4024,
+      "sha256": "4082fd426a19de89f6f77d8b0927d07cace1952117abd7c4a9167a9d4b2cbce8",
+      "symbol": "SPY"
+    },
+    "vix": {
+      "actual_end": "2025-12-31",
+      "actual_start": "2010-01-04",
+      "rows": 4173,
+      "sha256": "0a1ede70191c6383af273cb418c779f7a707b169404c889152ecc2a7e1b09558",
+      "symbol": "^VIX"
+    }
+  },
+  "is_synthetic": false,
+  "provider": "yahoo_chart",
+  "requested_end": "2025-12-31",
+  "requested_start": "2010-01-01",
+  "retrieval_timestamp": "2026-07-21T16:06:46.704564+00:00",
+  "snapshot_id": "yahoo_chart_20100101_20251231_v1",
+  "snapshot_manifest_sha256": "5f8c04b1fd12315a0367ea98be325e66f5881bf47bbe049ebb27b28d4b7efb2f"
+}

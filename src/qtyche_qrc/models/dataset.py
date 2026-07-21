@@ -86,6 +86,12 @@ class ModelDataset:
 
 
 def _source_metadata(manifest: dict[str, Any]) -> tuple[str, bool]:
+    explicit_type = manifest.get("data_source_type")
+    explicit_synthetic = manifest.get("is_synthetic")
+    if explicit_type in {"fixture", "public_market"} and isinstance(explicit_synthetic, bool):
+        if explicit_synthetic != (explicit_type == "fixture"):
+            raise DatasetIntegrityError("data manifest source flags are inconsistent")
+        return str(explicit_type), explicit_synthetic
     source_files = manifest.get("source_files", {})
     paths = [str(value.get("path", "")) for value in source_files.values()]
     fixture = bool(paths) and all(Path(path).name.startswith("fixture_") for path in paths)

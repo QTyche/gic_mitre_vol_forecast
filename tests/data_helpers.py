@@ -103,6 +103,38 @@ def write_test_data_config(root: Path) -> DataPreparationConfig:
     return load_data_config(data_path)
 
 
+def write_test_public_data_config(root: Path, *, mode: str = "cached_csv") -> DataPreparationConfig:
+    """Write a public-market variant with isolated raw and processed locations."""
+
+    fixture = write_test_data_config(root)
+    root_value = yaml.safe_load(fixture.source.read_text(encoding="utf-8"))
+    data = root_value["data"]
+    snapshot_id = "test_public_market_v1"
+    snapshot_dir = f"data/raw/public_market/{snapshot_id}"
+    data.update(
+        {
+            "mode": mode,
+            "data_source_type": "public_market",
+            "is_synthetic": False,
+            "snapshot": {
+                "id": snapshot_id,
+                "provider": "yahoo_chart",
+                "manifest": f"{snapshot_dir}/snapshot_manifest.json",
+            },
+            "raw_paths": {
+                "spy": f"{snapshot_dir}/spy.csv",
+                "vix": f"{snapshot_dir}/vix.csv",
+                "qqq": f"{snapshot_dir}/qqq.csv",
+            },
+            "processed_path": "data/processed/public_market",
+        }
+    )
+    root_value["experiment"]["output_dir"] = "data/processed/public_market"
+    path = root / "configs/data_public_market.yaml"
+    path.write_text(yaml.safe_dump(root_value, sort_keys=False), encoding="utf-8")
+    return load_data_config(path)
+
+
 def prepared_model_dataset(root: Path) -> ModelDataset:
     config = write_test_data_config(root)
     create_or_verify_fixture_snapshots(config)

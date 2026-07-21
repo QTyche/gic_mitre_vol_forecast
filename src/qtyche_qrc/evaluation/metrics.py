@@ -92,6 +92,7 @@ def transition_metrics(
     probabilities = transition_probabilities(regime_probabilities, current_regime)
     predicted = (probabilities >= threshold).astype(int)
     metrics = {
+        "transition_rate": float(np.mean(true_transition)),
         "transition_accuracy": float(accuracy_score(true_transition, predicted)),
         "transition_balanced_accuracy": float(balanced_accuracy_score(true_transition, predicted)),
         "transition_f1": float(f1_score(true_transition, predicted, zero_division=0)),
@@ -101,6 +102,52 @@ def transition_metrics(
         "transition_probability_threshold": threshold,
     }
     return metrics, probabilities, predicted
+
+
+def transition_subgroup_metrics(
+    true_regime: NDArray[np.int_],
+    current_regime: NDArray[np.int_],
+    regime_probabilities: NDArray[np.float64],
+    threshold: float = 0.5,
+    unstable_below: int = 30,
+) -> dict[str, Any]:
+    """Report transition detection by current regime and movement direction."""
+
+    truth = np.asarray(true_regime, dtype=int)
+    current = np.asarray(current_regime, dtype=int)
+    probabilities = transition_probabilities(regime_probabilities, current)
+
+    def evaluate(mask: NDArray[np.bool_], binary_truth: NDArray[np.int_]) -> dict[str, Any]:
+        values = binary_truth[mask]
+        scores = probabilities[mask]
+        predicted = (scores >= threshold).astype(int)
+        count = int(mask.sum())
+        positives = int(values.sum())
+        two_classes = len(np.unique(values)) == 2
+        return {
+            "count": count,
+            "positive_count": positives,
+            "positive_rate": float(values.mean()) if count else None,
+            "accuracy": float(accuracy_score(values, predicted)) if count else None,
+            "balanced_accuracy": float(balanced_accuracy_score(values, predicted))
+            if two_classes
+            else None,
+            "f1": float(f1_score(values, predicted, zero_division=0)) if count else None,
+            "roc_auc": float(roc_auc_score(values, scores)) if two_classes else None,
+            "pr_auc": float(average_precision_score(values, scores)) if two_classes else None,
+            "unstable": count < unstable_below or not two_classes,
+        }
+
+    transition_truth = (truth != current).astype(int)
+    upward_truth = (truth > current).astype(int)
+    downward_truth = (truth < current).astype(int)
+    return {
+        "low_origin": evaluate(current == 0, transition_truth),
+        "medium_origin": evaluate(current == 1, transition_truth),
+        "high_origin": evaluate(current == 2, transition_truth),
+        "upward": evaluate(current < 2, upward_truth),
+        "downward": evaluate(current > 0, downward_truth),
+    }
 
 
 def qlike(true_variance: NDArray[np.float64], predicted_variance: NDArray[np.float64]) -> float:
@@ -148,6 +195,10 @@ def regression_metrics(
         "mae": float(mean_absolute_error(true_values, adjusted)),
         "qlike": qlike(true_values, adjusted),
         "r_squared": float(r2_score(true_values, adjusted)),
+        "prediction_mean": float(adjusted.mean()),
+        "prediction_median": float(np.median(adjusted)),
+        "prediction_minimum": float(adjusted.min()),
+        "prediction_maximum": float(adjusted.max()),
         "non_finite_prediction_count": int(non_finite.sum()),
         "floored_prediction_count": int(floored.sum()),
         "prediction_floor": epsilon,

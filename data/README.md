@@ -71,8 +71,10 @@ forbidden.
 The default observations are training 2010–2020, validation 2021–2023, and test
 2024–2025, inclusive. Dates are strictly chronological and never shuffled. A
 row is retained only if its saved fifth-forward-trading-day window end is within
-the same split. This removes the last five observations from every split and
-prevents a target from crossing a split boundary. Trailing features may use
+the same split. This removes the last five eligible observations at an internal
+split boundary. At the final test boundary, the last five source rows can be
+removed earlier because no complete forward target exists, leaving zero
+additional purge rows. Trailing features may use
 earlier historical context because that information was already available at
 the observation date.
 
@@ -97,16 +99,14 @@ Run the complete offline fixture workflow with:
 make smoke
 ```
 
-To replace fixtures with public snapshots, change `data.mode` to `download`, set
-date-stamped raw paths and the symbol mapping in `configs/data.yaml`, then run:
+Acquire and process the isolated public-market configuration with:
 
 ```bash
-uv run python -m qtyche_qrc.cli prepare-data --config configs/data.yaml
+./scripts/reproduce_public_data.sh
 ```
 
-The downloader uses the public Yahoo chart endpoint only for missing raw paths
-and never overwrites an existing snapshot. Review licensing and redistribution
-terms before committing any downloaded data. For a fully frozen submission,
-switch back to `cached_csv` after acquisition and reproduce from the checksummed
-snapshots.
-
+The downloader uses the public Yahoo chart endpoint only in the explicit
+download command. It verifies an existing immutable snapshot and never
+overwrites one unless `--force` is supplied. Review provider terms before
+redistributing downloaded data. Subsequent preparation uses `--cached` and the
+checksummed snapshot without network access.

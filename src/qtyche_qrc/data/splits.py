@@ -22,6 +22,7 @@ def assign_chronological_splits(
 
     selected: list[pd.DataFrame] = []
     purged: dict[str, int] = {}
+    purged_dates: dict[str, list[str]] = {}
     rows_in_boundaries = 0
     for boundary in boundaries:
         date_mask = frame["date"].between(
@@ -31,6 +32,7 @@ def assign_chronological_splits(
         rows_in_boundaries += len(candidates)
         safe = candidates["target_window_end"].le(pd.Timestamp(boundary.end))
         purged[boundary.name] = int((~safe).sum())
+        purged_dates[boundary.name] = candidates.loc[~safe, "date"].dt.strftime("%Y-%m-%d").tolist()
         candidates = candidates.loc[safe].copy()
         candidates["split"] = boundary.name
         selected.append(candidates)
@@ -41,6 +43,7 @@ def assign_chronological_splits(
         "rows_in_split_boundaries": rows_in_boundaries,
         "rows_outside_split_boundaries": int(len(frame) - rows_in_boundaries),
         "purged_forward_window_rows": purged,
+        "purged_forward_window_dates": purged_dates,
         "rows_after_split_and_purge": len(result),
     }
     return result, report

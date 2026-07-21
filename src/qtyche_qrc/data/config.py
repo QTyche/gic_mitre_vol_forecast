@@ -65,6 +65,13 @@ class DataPreparationConfig:
     split_boundaries: tuple[SplitBoundary, ...]
     purge_trading_days: int
     missing_data_policy: str
+    data_source_type: str
+    is_synthetic: bool
+    snapshot_id: str | None
+    snapshot_manifest_path: Path | None
+    provider: str | None
+    large_move_threshold: float
+    fatal_audit_conditions: tuple[str, ...]
 
 
 def _mapping(value: object, location: str) -> Mapping[str, Any]:
@@ -218,6 +225,56 @@ def load_data_config(path: str | Path) -> DataPreparationConfig:
     if missing_policy not in {"drop_secondary_and_report", "error"}:
         raise ConfigError("unsupported data.missing_data_policy")
 
+    source_type_value = data_config.get("data_source_type")
+    if source_type_value is None:
+        data_source_type = "fixture"
+    elif isinstance(source_type_value, str):
+        data_source_type = source_type_value.strip()
+    else:
+        raise ConfigError("data.data_source_type must be fixture or public_market")
+    if data_source_type not in {"fixture", "public_market"}:
+        raise ConfigError("data.data_source_type must be fixture or public_market")
+    synthetic_value = data_config.get("is_synthetic", data_source_type == "fixture")
+    if not isinstance(synthetic_value, bool):
+        raise ConfigError("data.is_synthetic must be a boolean")
+    if synthetic_value != (data_source_type == "fixture"):
+        raise ConfigError("fixture data must be synthetic and public_market data non-synthetic")
+
+    snapshot_id: str | None = None
+    snapshot_manifest_path: Path | None = None
+    provider: str | None = None
+    snapshot_value = data_config.get("snapshot")
+    if data_source_type == "public_market":
+        snapshot = _mapping(snapshot_value, "data.snapshot")
+        snapshot_id = _text(snapshot, "id", "data.snapshot")
+        provider = _text(snapshot, "provider", "data.snapshot")
+        if provider != "yahoo_chart":
+            raise ConfigError("data.snapshot.provider must currently be yahoo_chart")
+        manifest_setting = _text(snapshot, "manifest", "data.snapshot")
+        snapshot_manifest_path = (project_root / manifest_setting).resolve()
+        snapshot_dir = snapshot_manifest_path.parent
+        if any(path.parent != snapshot_dir for path in raw_paths.values()):
+            raise ConfigError("public raw_paths and snapshot manifest must share one directory")
+        if processed_path == (project_root / "data/processed").resolve():
+            raise ConfigError("public data must not overwrite the fixture processed directory")
+
+    audit = _mapping(data_config.get("audit", {}), "data.audit")
+    large_move_threshold = float(audit.get("large_move_threshold", 0.20))
+    if not 0 < large_move_threshold < 10:
+        raise ConfigError("data.audit.large_move_threshold must lie in (0, 10)")
+    fatal_value = audit.get(
+        "fatal_conditions",
+        [
+            "duplicate_dates",
+            "non_increasing_dates",
+            "missing_required_values",
+            "non_positive_prices",
+            "ohlc_violations",
+        ],
+    )
+    if not isinstance(fatal_value, list) or any(not isinstance(item, str) for item in fatal_value):
+        raise ConfigError("data.audit.fatal_conditions must be a list of strings")
+
     return DataPreparationConfig(
         source=source,
         split_source=split_source,
@@ -237,4 +294,11 @@ def load_data_config(path: str | Path) -> DataPreparationConfig:
         split_boundaries=tuple(boundaries),
         purge_trading_days=purge,
         missing_data_policy=missing_policy,
+        data_source_type=data_source_type,
+        is_synthetic=synthetic_value,
+        snapshot_id=snapshot_id,
+        snapshot_manifest_path=snapshot_manifest_path,
+        provider=provider,
+        large_move_threshold=large_move_threshold,
+        fatal_audit_conditions=tuple(fatal_value),
     )

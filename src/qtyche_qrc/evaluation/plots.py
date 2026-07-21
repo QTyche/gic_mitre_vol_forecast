@@ -87,6 +87,51 @@ def plot_rv_series(predictions: pd.DataFrame, path: Path, synthetic: bool) -> No
     plt.close(figure)
 
 
+def plot_regression_diagnostics(
+    predictions: pd.DataFrame, output_dir: Path, synthetic: bool
+) -> None:
+    """Write scatter, residual, distribution, and QLIKE-contribution diagnostics."""
+
+    output_dir.mkdir(parents=True, exist_ok=True)
+    dates = pd.to_datetime(predictions["date"])
+    truth = predictions["true_rv_5d"].to_numpy(dtype=float)
+    forecast = predictions["predicted_rv_5d"].to_numpy(dtype=float)
+    residual = truth - forecast
+    qlike_contribution = np.log(forecast) + truth / forecast
+
+    figure, axis = plt.subplots(figsize=(5, 5))
+    axis.scatter(truth, forecast, s=8, alpha=0.5)
+    bound = max(float(np.max(truth)), float(np.max(forecast)))
+    axis.plot([0, bound], [0, bound], linestyle="--", color="black")
+    axis.set(xlabel="True RV", ylabel="Predicted RV")
+    axis.set_title(_title("Realized-variance prediction scatter", synthetic))
+    figure.tight_layout()
+    figure.savefig(output_dir / "prediction_scatter.png", dpi=150)
+    plt.close(figure)
+
+    figure, axis = plt.subplots(figsize=(10, 3.5))
+    axis.plot(dates, residual, linewidth=0.8)
+    axis.axhline(0, color="black", linewidth=0.8)
+    axis.set_title(_title("Realized-variance residuals", synthetic))
+    figure.tight_layout()
+    figure.savefig(output_dir / "residual_time_series.png", dpi=150)
+    plt.close(figure)
+
+    figure, axis = plt.subplots(figsize=(6, 4))
+    axis.hist(residual, bins=50)
+    axis.set_title(_title("Realized-variance residual distribution", synthetic))
+    figure.tight_layout()
+    figure.savefig(output_dir / "residual_distribution.png", dpi=150)
+    plt.close(figure)
+
+    figure, axis = plt.subplots(figsize=(10, 3.5))
+    axis.plot(dates, qlike_contribution, linewidth=0.8)
+    axis.set_title(_title("QLIKE contribution through time", synthetic))
+    figure.tight_layout()
+    figure.savefig(output_dir / "qlike_contribution.png", dpi=150)
+    plt.close(figure)
+
+
 def plot_baseline_comparison(
     table: pd.DataFrame,
     metric: str,

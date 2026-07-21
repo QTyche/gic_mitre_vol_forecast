@@ -25,6 +25,9 @@ results/tables/*
 !results/tables/.gitkeep
 results/smoke/
 results/*_seed*/
+results/public_market/
+results/data_audit/
+results/diagnostics/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

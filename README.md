@@ -6,10 +6,11 @@ primary benchmark asks whether a fixed transverse-field Ising quantum reservoir
 provides better or more robust features than a resource- and search-budget-matched
 Echo State Network for forecasting the volatility regime five trading days ahead.
 
-The repository currently contains the project foundation and the versioned data
-contract. It can prepare deterministic offline fixtures or immutable public-data
-snapshots, but deliberately does not implement predictive models or report
-financial performance results.
+The repository currently contains the versioned data contract, deterministic
+fixture workflow, immutable public-market snapshot workflow, classical
+baselines, Echo State Network controls, evaluation framework, and reproducible
+experiment manifests. The quantum reservoir is deliberately not implemented
+yet.
 
 ## Repository layout
 
@@ -80,8 +81,33 @@ uv run python -m qtyche_qrc.cli search-baseline \
 ```
 
 The override retains synthetic warnings and does not authorize a market claim.
-For real frozen public data, `scripts/reproduce_core_baselines.sh` runs the core
-suite without the override.
+
+## Public-market benchmark
+
+Download or verify the versioned Yahoo chart snapshot explicitly, then process
+it from the checksum-verified local cache:
+
+```bash
+./scripts/reproduce_public_data.sh
+```
+
+The canonical snapshot is `yahoo_chart_20100101_20251231_v1`. Raw provider
+files are ignored by Git; configuration, acquisition code, checksums, and
+provenance metadata are committed. Provider terms must be reviewed before raw
+files are redistributed.
+
+After processing, run the six real-data baselines and diagnostic package:
+
+```bash
+./scripts/reproduce_core_baselines.sh
+```
+
+This script refuses missing, synthetic, or incorrectly marked processed data.
+It runs majority and regime persistence, validation-selected logistic and ESN
+classification, realized-variance persistence, and the validation-selected
+log-variance ESN regression workflow. Outputs appear in
+`results/public_market/`, `results/diagnostics/esn_regression/`,
+`results/data_audit/`, and `results/tables/`.
 
 Each run creates `results/<experiment_id>/` with its exact configuration,
 manifest, model, all candidate validation results, separate validation/test
@@ -99,6 +125,12 @@ uv run python -m qtyche_qrc.cli compare-baselines \
 Comparison always writes separate validation and test tables. See
 `docs/evaluation_protocol.md`, `docs/model_interface.md`, `docs/esn_design.md`,
 and `docs/result_schema.md` for the scientific contracts.
+
+For the public package, `compare-public-baselines` writes separate
+validation/test tables plus classification, transition, and regression
+diagnostics. See `docs/public_data_provenance.md`,
+`docs/public_data_audit.md`, `docs/esn_regression_diagnostics.md`, and
+`docs/real_baseline_protocol.md`.
 
 ## Reproducibility principles
 
