@@ -12,7 +12,15 @@ from qtyche_qrc.data.config import load_data_config
 from qtyche_qrc.data.fixtures import create_or_verify_fixture_snapshots, fixture_summary
 from qtyche_qrc.data.pipeline import inspect_processed_targets, prepare_data
 from qtyche_qrc.data.validation import DataValidationError, audit_processed_data
+from qtyche_qrc.experiments.compare import compare_baselines
 from qtyche_qrc.experiments.manifest import create_manifest
+from qtyche_qrc.experiments.model_config import load_model_config
+from qtyche_qrc.experiments.run import (
+    SyntheticResultsError,
+    evaluate_experiment,
+    inspect_experiment,
+    run_baseline_experiment,
+)
 from qtyche_qrc.seed import set_global_seed
 
 
@@ -51,6 +59,39 @@ def build_parser() -> argparse.ArgumentParser:
         help="show regime and transition target distributions",
     )
     inspect.add_argument("--processed-dir", required=True, help="processed data directory")
+
+    for command, help_text in (
+        ("train-baseline", "train, validate, and test one configured baseline"),
+        ("search-baseline", "run validation-only baseline hyperparameter selection"),
+    ):
+        baseline = subparsers.add_parser(command, help=help_text)
+        baseline.add_argument("--config", required=True, help="model YAML configuration")
+        baseline.add_argument(
+            "--allow-synthetic-results",
+            action="store_true",
+            help="allow clearly marked fixture-only smoke outputs",
+        )
+
+    evaluate = subparsers.add_parser(
+        "evaluate-experiment", help="recompute metrics from persisted predictions"
+    )
+    evaluate.add_argument("--experiment-dir", required=True)
+
+    compare = subparsers.add_parser(
+        "compare-baselines", help="write separate validation and test comparison tables"
+    )
+    compare.add_argument("--results-dir", required=True)
+    compare.add_argument("--output-dir", required=True)
+    compare.add_argument(
+        "--latest-per-model",
+        action="store_true",
+        help="retain only the latest experiment for each task/seed/model tuple",
+    )
+
+    inspect_experiment_parser = subparsers.add_parser(
+        "inspect-experiment", help="inspect experiment provenance and metrics"
+    )
+    inspect_experiment_parser.add_argument("--experiment-dir", required=True)
 
     return parser
 
@@ -103,7 +144,39 @@ def main(argv: Sequence[str] | None = None) -> int:
             summary = inspect_processed_targets(Path(args.processed_dir).resolve())
             print(json.dumps(summary, indent=2, sort_keys=True))
             return 0
-    except (ConfigError, DataValidationError, FileNotFoundError, ValueError) as exc:
+        if args.command in {"train-baseline", "search-baseline"}:
+            model_config = load_model_config(Path(args.config))
+            if args.command == "search-baseline" and not model_config.search_enabled:
+                raise ValueError("search-baseline requires search.enabled: true")
+            experiment_dir = run_baseline_experiment(
+                Path(args.config), allow_synthetic_results=args.allow_synthetic_results
+            )
+            print(experiment_dir)
+            return 0
+        if args.command == "evaluate-experiment":
+            summary = evaluate_experiment(Path(args.experiment_dir).resolve())
+            print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+        if args.command == "compare-baselines":
+            validation_path, test_path = compare_baselines(
+                Path(args.results_dir).resolve(),
+                Path(args.output_dir).resolve(),
+                latest_per_model=args.latest_per_model,
+            )
+            print(f"validation comparison: {validation_path}")
+            print(f"test comparison: {test_path}")
+            return 0
+        if args.command == "inspect-experiment":
+            summary = inspect_experiment(Path(args.experiment_dir).resolve())
+            print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+    except (
+        ConfigError,
+        DataValidationError,
+        FileNotFoundError,
+        SyntheticResultsError,
+        ValueError,
+    ) as exc:
         parser.error(str(exc))
 
     parser.error(f"unsupported command: {args.command}")

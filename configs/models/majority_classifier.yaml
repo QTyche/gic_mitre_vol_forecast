@@ -1,0 +1,21 @@
+schema_version: 1
+experiment:
+  name: majority_classifier_smoke
+  project_root: ../..
+  seed: 2026
+  output_root: results
+data:
+  processed_dir: data/processed
+  manifest: data/processed/data_manifest.json
+model:
+  type: majority_classifier
+  task: regime_classification
+  parameters: {}
+search:
+  enabled: false
+  selection_metric: macro_f1
+  maximum_trials: 1
+  space: {}
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12

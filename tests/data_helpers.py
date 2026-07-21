@@ -6,6 +6,9 @@ import yaml
 
 from qtyche_qrc.data.config import DataPreparationConfig, load_data_config
 from qtyche_qrc.data.features import FEATURE_NAMES
+from qtyche_qrc.data.fixtures import create_or_verify_fixture_snapshots
+from qtyche_qrc.data.pipeline import prepare_data
+from qtyche_qrc.models.dataset import ModelDataset, load_model_dataset
 
 
 def canonical_frame(rows: int = 60) -> pd.DataFrame:
@@ -98,3 +101,44 @@ def write_test_data_config(root: Path) -> DataPreparationConfig:
     data_path = config_dir / "data.yaml"
     data_path.write_text(yaml.safe_dump(data_config, sort_keys=False), encoding="utf-8")
     return load_data_config(data_path)
+
+
+def prepared_model_dataset(root: Path) -> ModelDataset:
+    config = write_test_data_config(root)
+    create_or_verify_fixture_snapshots(config)
+    prepare_data(config)
+    return load_model_dataset(config.processed_path)
+
+
+def write_test_model_config(
+    root: Path,
+    model_type: str = "majority_classifier",
+    task: str = "regime_classification",
+) -> Path:
+    config_dir = root / "configs" / "models"
+    config_dir.mkdir(parents=True, exist_ok=True)
+    selection_metric = "macro_f1" if task == "regime_classification" else "qlike"
+    config = {
+        "schema_version": 1,
+        "experiment": {
+            "name": "test_baseline",
+            "project_root": "../..",
+            "seed": 19,
+            "output_root": "results/test",
+        },
+        "data": {
+            "processed_dir": "data/processed",
+            "manifest": "data/processed/data_manifest.json",
+        },
+        "model": {"type": model_type, "task": task, "parameters": {}},
+        "search": {
+            "enabled": False,
+            "selection_metric": selection_metric,
+            "maximum_trials": 1,
+            "space": {},
+        },
+        "evaluation": {"transition_threshold": 0.5, "variance_floor": 1e-12},
+    }
+    path = config_dir / "model.yaml"
+    path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+    return path

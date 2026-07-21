@@ -23,6 +23,8 @@ results/figures/*
 !results/figures/.gitkeep
 results/tables/*
 !results/tables/.gitkeep
+results/smoke/
+results/*_seed*/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

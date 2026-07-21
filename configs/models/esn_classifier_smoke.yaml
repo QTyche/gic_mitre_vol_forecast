@@ -1,0 +1,30 @@
+schema_version: 1
+experiment:
+  name: esn_classifier_smoke
+  project_root: ../..
+  seed: 2026
+  output_root: results
+data:
+  processed_dir: data/processed
+  manifest: data/processed/data_manifest.json
+model:
+  type: esn_classifier
+  task: regime_classification
+  parameters:
+    reservoir_size: 8
+    spectral_radius: 0.9
+    input_scaling: 0.5
+    leaking_rate: 0.4
+    sparsity: 0.2
+    washout: 5
+    ridge_alpha: 0.001
+    state_policy: carry_inputs
+search:
+  enabled: true
+  selection_metric: macro_f1
+  maximum_trials: 2
+  space:
+    ridge_alpha: [0.001, 0.1]
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12

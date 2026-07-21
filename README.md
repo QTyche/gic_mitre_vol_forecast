@@ -46,8 +46,14 @@ make smoke
 
 The smoke command creates or verifies deterministic synthetic raw fixtures,
 prepares causal features and five-day targets, writes purged and normalized
-splits plus their data manifest, audits them, inspects target balance, and runs
-the full test suite. It never accesses the network and does not train a model.
+splits plus their data manifest, audits them, and runs six small classical
+baseline experiments. It then evaluates them, creates separate validation and
+test comparison tables, and runs the complete test/lint/type-check suite. It is
+offline and CPU-oriented.
+
+**All smoke forecasting outputs use synthetic fixture data. They are pipeline
+tests, not financial performance evidence.** Every fixture artifact is visibly
+marked `SYNTHETIC FIXTURE DATA — NOT A FINANCIAL PERFORMANCE RESULT`.
 
 The CLI is also available directly:
 
@@ -57,6 +63,42 @@ uv run python -m qtyche_qrc.cli validate-config --config configs/qrc_smoke.yaml
 uv run python -m qtyche_qrc.cli prepare-data --config configs/data.yaml
 uv run python -m qtyche_qrc.cli audit-data --processed-dir data/processed
 ```
+
+## Classical baseline experiments
+
+Headline-capable commands reject fixtures unless the explicit integration-test
+override is present:
+
+```bash
+uv run python -m qtyche_qrc.cli train-baseline \
+  --config configs/models/logistic_regression.yaml \
+  --allow-synthetic-results
+
+uv run python -m qtyche_qrc.cli search-baseline \
+  --config configs/models/esn_classifier_smoke.yaml \
+  --allow-synthetic-results
+```
+
+The override retains synthetic warnings and does not authorize a market claim.
+For real frozen public data, `scripts/reproduce_core_baselines.sh` runs the core
+suite without the override.
+
+Each run creates `results/<experiment_id>/` with its exact configuration,
+manifest, model, all candidate validation results, separate validation/test
+metrics and predictions, timing, figures, and logs. Inspect or compare with:
+
+```bash
+uv run python -m qtyche_qrc.cli inspect-experiment \
+  --experiment-dir results/<experiment_id>
+
+uv run python -m qtyche_qrc.cli compare-baselines \
+  --results-dir results \
+  --output-dir results/tables
+```
+
+Comparison always writes separate validation and test tables. See
+`docs/evaluation_protocol.md`, `docs/model_interface.md`, `docs/esn_design.md`,
+and `docs/result_schema.md` for the scientific contracts.
 
 ## Reproducibility principles
 

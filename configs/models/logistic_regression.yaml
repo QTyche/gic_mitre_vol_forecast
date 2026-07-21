@@ -1,0 +1,25 @@
+schema_version: 1
+experiment:
+  name: logistic_regression_smoke
+  project_root: ../..
+  seed: 2026
+  output_root: results
+data:
+  processed_dir: data/processed
+  manifest: data/processed/data_manifest.json
+model:
+  type: logistic_regression
+  task: regime_classification
+  parameters:
+    regularization_c: 1.0
+    class_weight: null
+    max_iterations: 300
+search:
+  enabled: true
+  selection_metric: macro_f1
+  maximum_trials: 3
+  space:
+    regularization_c: [0.1, 1.0, 10.0]
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12
