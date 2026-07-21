@@ -22,6 +22,13 @@ from qtyche_qrc.experiments.esn_regression_diagnostics import (
 from qtyche_qrc.experiments.manifest import create_manifest
 from qtyche_qrc.experiments.model_config import load_model_config
 from qtyche_qrc.experiments.public_compare import compare_public_baselines
+from qtyche_qrc.experiments.qrc_capacity import characterize_qrc
+from qtyche_qrc.experiments.qrc_run import (
+    compare_qrc_seeds,
+    generate_qrc_features,
+    inspect_qrc_experiment,
+    run_qrc_experiment,
+)
 from qtyche_qrc.experiments.run import (
     SyntheticResultsError,
     evaluate_experiment,
@@ -136,6 +143,37 @@ def build_parser() -> argparse.ArgumentParser:
     diagnose.add_argument("--config", required=True)
     diagnose.add_argument("--output-dir", required=True)
 
+    characterize = subparsers.add_parser(
+        "characterize-qrc",
+        help="run deterministic synthetic QRC memory and nonlinearity characterization",
+    )
+    characterize.add_argument("--config", required=True)
+
+    generate_qrc = subparsers.add_parser(
+        "generate-qrc-features", help="generate or verify checksum-keyed QRC features"
+    )
+    generate_qrc.add_argument("--config", required=True)
+    generate_qrc.add_argument("--reservoir-seed", type=int)
+    generate_qrc.add_argument("--allow-synthetic-results", action="store_true")
+
+    train_qrc = subparsers.add_parser(
+        "train-qrc", help="validation-select a QRC ridge head and evaluate its frozen test"
+    )
+    train_qrc.add_argument("--config", required=True)
+    train_qrc.add_argument("--reservoir-seed", type=int)
+    train_qrc.add_argument("--allow-synthetic-results", action="store_true")
+
+    inspect_qrc = subparsers.add_parser(
+        "inspect-qrc", help="inspect a completed QRC experiment and numerical diagnostics"
+    )
+    inspect_qrc.add_argument("--experiment-dir", required=True)
+
+    compare_qrc = subparsers.add_parser(
+        "compare-qrc-seeds", help="aggregate public QRC pilot metrics across reservoir seeds"
+    )
+    compare_qrc.add_argument("--results-dir", required=True)
+    compare_qrc.add_argument("--output-dir", required=True)
+
     return parser
 
 
@@ -238,6 +276,47 @@ def main(argv: Sequence[str] | None = None) -> int:
                 Path(args.config), Path(args.output_dir).resolve()
             )
             print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+        if args.command == "characterize-qrc":
+            output = characterize_qrc(Path(args.config))
+            print(output)
+            return 0
+        if args.command == "generate-qrc-features":
+            bundle = generate_qrc_features(
+                Path(args.config),
+                allow_synthetic_results=args.allow_synthetic_results,
+                reservoir_seed=args.reservoir_seed,
+            )
+            print(
+                json.dumps(
+                    {
+                        "cache_directory": str(bundle.cache_dir),
+                        "cache_hit": bundle.cache_hit,
+                        "split_shapes": bundle.metadata["split_shapes"],
+                        "cache_key_checksum": bundle.metadata["cache_key_checksum"],
+                    },
+                    indent=2,
+                    sort_keys=True,
+                )
+            )
+            return 0
+        if args.command == "train-qrc":
+            output = run_qrc_experiment(
+                Path(args.config),
+                allow_synthetic_results=args.allow_synthetic_results,
+                reservoir_seed=args.reservoir_seed,
+            )
+            print(output)
+            return 0
+        if args.command == "inspect-qrc":
+            summary = inspect_qrc_experiment(Path(args.experiment_dir).resolve())
+            print(json.dumps(summary, indent=2, sort_keys=True))
+            return 0
+        if args.command == "compare-qrc-seeds":
+            outputs = compare_qrc_seeds(
+                Path(args.results_dir).resolve(), Path(args.output_dir).resolve()
+            )
+            print(json.dumps({key: str(value) for key, value in outputs.items()}, indent=2))
             return 0
     except (
         ConfigError,

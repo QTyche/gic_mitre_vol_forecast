@@ -45,3 +45,21 @@ Every row contains model, task, seed, selected configuration, snapshot ID,
 processed-manifest checksum, source/synthetic flags, Git provenance, split
 designation, and experiment ID. Nested class and transition metrics are
 flattened only in their task-specific diagnostic tables.
+
+QRC experiment directories preserve the same core schema and additionally
+contain `model/qrc_hamiltonian.npz`, `model/qrc_hamiltonian.json`,
+`model/input_projection.npy`, `model/observables.json`, `model/readout.npz`,
+`qrc_backend_metadata.json`, `qrc_numerical_diagnostics.json`, and
+`qrc_feature_metadata.json`. The feature metadata includes the complete cache
+key, per-split checksums, label-free-generation declaration, timing, and
+observable ordering.
+
+Capacity outputs live below `results/qrc_capacity/<analysis_id>/` and include
+the exact config/manifest, delayed linear and quadratic tables, cross-delay
+table, singular values, feature-rank JSON, contractivity curve/summary,
+feature autocorrelation, the fixed analytical ablation table, and Matplotlib
+figures.
+
+Public pilot aggregation writes `qrc_pilot_validation_by_seed.csv`,
+`qrc_pilot_test_by_seed.csv`, and `qrc_pilot_seed_summary.csv`. Test rows are
+never used during ridge selection.

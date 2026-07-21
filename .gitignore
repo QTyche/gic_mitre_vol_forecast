@@ -28,6 +28,7 @@ results/*_seed*/
 results/public_market/
 results/data_audit/
 results/diagnostics/
+results/qrc_*/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

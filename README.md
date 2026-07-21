@@ -8,9 +8,9 @@ Echo State Network for forecasting the volatility regime five trading days ahead
 
 The repository currently contains the versioned data contract, deterministic
 fixture workflow, immutable public-market snapshot workflow, classical
-baselines, Echo State Network controls, evaluation framework, and reproducible
-experiment manifests. The quantum reservoir is deliberately not implemented
-yet.
+baselines, Echo State Network controls, exact noiseless quantum reservoir,
+analytical capacity diagnostics, evaluation framework, and reproducible
+experiment manifests.
 
 ## Repository layout
 
@@ -131,6 +131,50 @@ validation/test tables plus classification, transition, and regression
 diagnostics. See `docs/public_data_provenance.md`,
 `docs/public_data_audit.md`, `docs/esn_regression_diagnostics.md`, and
 `docs/real_baseline_protocol.md`.
+
+## Exact QRC workflows
+
+Run the deterministic three-qubit fixture integration entirely offline:
+
+```bash
+./scripts/reproduce_qrc_smoke.sh
+```
+
+These outputs are marked synthetic and are not financial results. Characterize
+linear and nonlinear memory, feature rank, autocorrelation, and empirical
+contractivity on deterministic synthetic inputs with:
+
+```bash
+./scripts/characterize_qrc.sh
+```
+
+After the verified public processed data exist, run the fixed six-qubit,
+two-virtual-node pilot for reservoir seeds 2026, 2027, and 2028:
+
+```bash
+./scripts/run_qrc_public_pilot.sh
+```
+
+Equivalent individual commands include:
+
+```bash
+uv run python -m qtyche_qrc.cli generate-qrc-features \
+  --config configs/models/qrc_classifier_pilot.yaml
+uv run python -m qtyche_qrc.cli train-qrc \
+  --config configs/models/qrc_classifier_pilot.yaml
+uv run python -m qtyche_qrc.cli inspect-qrc \
+  --experiment-dir results/qrc_public_pilot/<experiment_id>
+uv run python -m qtyche_qrc.cli compare-qrc-seeds \
+  --results-dir results/qrc_public_pilot \
+  --output-dir results/tables
+```
+
+The backend is exact and noiseless, has a six-qubit safety limit, and includes
+no shots, hardware, physical noise, or feedback. See
+`docs/qrc_mathematical_definition.md`, `docs/qrc_backend.md`,
+`docs/qrc_capacity_analysis.md`, and `docs/qrc_esn_fairness.md`. The pilot is
+correctness and stability evidence only; it makes no ESN-superiority or quantum
+advantage claim.
 
 ## Reproducibility principles
 

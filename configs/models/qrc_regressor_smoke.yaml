@@ -1,0 +1,35 @@
+schema_version: 1
+experiment:
+  name: qrc_regressor_smoke
+  project_root: ../..
+  seed: 2026
+  output_root: results/qrc_smoke
+data:
+  processed_dir: data/processed
+  manifest: data/processed/data_manifest.json
+model:
+  type: qrc_regressor
+  task: rv_regression
+  parameters:
+    n_qubits: 3
+    graph: ring
+    virtual_nodes: 1
+    j_strength: 1.0
+    h_strength: 1.0
+    tau: 1.0
+    input_scaling: 0.5
+    ridge_alpha: 0.1
+    transform_epsilon: 1.0e-12
+    state_policy: carry_inputs
+    reservoir_seed: 2026
+    backend: numpy_density_matrix_exact
+search:
+  enabled: false
+  selection_metric: qlike
+  maximum_trials: 1
+  space: {}
+qrc:
+  feature_cache: results/qrc_cache
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12

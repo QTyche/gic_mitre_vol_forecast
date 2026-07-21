@@ -174,3 +174,40 @@ def write_test_model_config(
     path = config_dir / "model.yaml"
     path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
     return path
+
+
+def write_test_qrc_model_config(
+    root: Path,
+    *,
+    task: str = "regime_classification",
+    search: bool = False,
+) -> Path:
+    """Write a three-qubit fixture-only QRC model configuration."""
+
+    model_type = "qrc_classifier" if task == "regime_classification" else "qrc_regressor"
+    path = write_test_model_config(root, model_type, task)
+    config = yaml.safe_load(path.read_text(encoding="utf-8"))
+    config["model"]["parameters"] = {
+        "n_qubits": 3,
+        "graph": "ring",
+        "virtual_nodes": 1,
+        "j_strength": 1.0,
+        "h_strength": 1.0,
+        "tau": 1.0,
+        "input_scaling": 0.5,
+        "ridge_alpha": 0.1,
+        "state_policy": "carry_inputs",
+        "reservoir_seed": 19,
+        "backend": "numpy_density_matrix_exact",
+    }
+    if task == "rv_regression":
+        config["model"]["parameters"]["transform_epsilon"] = 1e-12
+    config["search"] = {
+        "enabled": search,
+        "selection_metric": "macro_f1" if task == "regime_classification" else "qlike",
+        "maximum_trials": 2 if search else 1,
+        "space": {"ridge_alpha": [0.01, 0.1]} if search else {},
+    }
+    config["qrc"] = {"feature_cache": "results/qrc_cache"}
+    path.write_text(yaml.safe_dump(config, sort_keys=False), encoding="utf-8")
+    return path

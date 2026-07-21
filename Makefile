@@ -20,3 +20,4 @@ format:
 
 smoke:
 	./scripts/reproduce_smoke.sh
+	./scripts/reproduce_qrc_smoke.sh

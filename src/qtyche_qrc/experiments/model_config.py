@@ -81,6 +81,8 @@ def load_model_config(path: Path) -> ModelExperimentConfig:
         "rv_persistence",
         "esn_classifier",
         "esn_regressor",
+        "qrc_classifier",
+        "qrc_regressor",
     }
     if model_type not in allowed_models:
         raise ValueError(f"unsupported model.type: {model_type}")

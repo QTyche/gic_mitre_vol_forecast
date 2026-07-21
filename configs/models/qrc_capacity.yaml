@@ -1,0 +1,31 @@
+schema_version: 1
+analysis:
+  id: qrc_capacity_n4_v2_seed2026
+  project_root: ../..
+  output_root: results/qrc_capacity
+  sequence_seed: 2026
+  sequence_length: 600
+  washout: 100
+  train_fraction: 0.6
+  max_delay: 10
+  ridge_alpha: 1.0e-6
+  autocorrelation_max_lag: 10
+  contractivity_steps: 150
+  cross_delay_pairs:
+    - [1, 2]
+    - [1, 3]
+    - [2, 4]
+qrc:
+  n_qubits: 4
+  graph: ring
+  virtual_nodes: 2
+  j_strength: 1.0
+  h_strength: 1.0
+  tau: 1.0
+  input_scaling: 0.5
+  state_policy: carry_inputs
+  reservoir_seed: 2026
+  backend: numpy_density_matrix_exact
+ablation:
+  input_scaling: [0.1, 0.5, 1.0]
+  j_strength: [0.1, 1.0, 2.0]

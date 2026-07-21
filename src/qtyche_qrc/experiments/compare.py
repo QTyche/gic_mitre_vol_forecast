@@ -10,6 +10,15 @@ import pandas as pd
 
 from qtyche_qrc.evaluation.plots import plot_baseline_comparison
 
+CLASSICAL_BASELINE_TYPES = {
+    "majority_classifier",
+    "regime_persistence",
+    "logistic_regression",
+    "rv_persistence",
+    "esn_classifier",
+    "esn_regressor",
+}
+
 
 def _scalar_metrics(metrics: dict[str, Any]) -> dict[str, Any]:
     return {
@@ -33,6 +42,8 @@ def compare_baselines(
         experiment_dir = manifest_path.parent
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         if manifest.get("status") != "success":
+            continue
+        if manifest.get("model_type") not in CLASSICAL_BASELINE_TYPES:
             continue
         selected = json.dumps(
             manifest.get("selected_hyperparameters"), sort_keys=True, separators=(",", ":")

@@ -61,6 +61,12 @@ def test_completed_fixture_experiment_has_required_marked_files(
 def test_validation_and_test_comparison_tables_are_separate(tmp_path: Path) -> None:
     model_config = _prepared_experiment_root(tmp_path)
     run_baseline_experiment(model_config, allow_synthetic_results=True)
+    capacity_dir = tmp_path / "results/qrc_capacity/example"
+    capacity_dir.mkdir(parents=True)
+    (capacity_dir / "manifest.json").write_text(
+        json.dumps({"status": "success", "analysis_id": "not-a-baseline"}),
+        encoding="utf-8",
+    )
     output_dir = tmp_path / "tables"
 
     validation_path, test_path = compare_baselines(tmp_path / "results", output_dir)

@@ -1,0 +1,36 @@
+schema_version: 1
+experiment:
+  name: public_market_qrc_classifier_pilot
+  project_root: ../..
+  seed: 2026
+  output_root: results/qrc_public_pilot
+data:
+  processed_dir: data/processed/public_market
+  manifest: data/processed/public_market/data_manifest.json
+model:
+  type: qrc_classifier
+  task: regime_classification
+  parameters:
+    n_qubits: 6
+    graph: ring
+    virtual_nodes: 2
+    j_strength: 1.0
+    h_strength: 1.0
+    tau: 1.0
+    input_scaling: 0.5
+    ridge_alpha: 0.1
+    state_policy: carry_inputs
+    reservoir_seed: 2026
+    backend: numpy_density_matrix_exact
+search:
+  enabled: true
+  selection_metric: macro_f1
+  maximum_trials: 4
+  space:
+    ridge_alpha: [1.0e-5, 1.0e-3, 1.0e-1, 1.0]
+qrc:
+  feature_cache: results/qrc_cache
+  reservoir_seeds: [2026, 2027, 2028]
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12
