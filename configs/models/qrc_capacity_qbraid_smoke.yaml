@@ -1,0 +1,29 @@
+schema_version: 1
+analysis:
+  id: qrc_capacity_qbraid_smoke
+  project_root: ../..
+  output_root: results/qbraid/capacity
+  sequence_seed: 2026
+  sequence_length: 120
+  washout: 20
+  train_fraction: 0.6
+  max_delay: 3
+  ridge_alpha: 1.0e-6
+  autocorrelation_max_lag: 3
+  contractivity_steps: 30
+  cross_delay_pairs:
+    - [1, 2]
+qrc:
+  n_qubits: 3
+  graph: ring
+  virtual_nodes: 1
+  j_strength: 1.0
+  h_strength: 1.0
+  tau: 1.0
+  input_scaling: 0.5
+  state_policy: carry_inputs
+  reservoir_seed: 2026
+  backend: numpy_density_matrix_exact
+ablation:
+  input_scaling: [0.5]
+  j_strength: [1.0]

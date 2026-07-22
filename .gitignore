@@ -29,6 +29,7 @@ results/public_market/
 results/data_audit/
 results/diagnostics/
 results/qrc_*/
+results/qbraid/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

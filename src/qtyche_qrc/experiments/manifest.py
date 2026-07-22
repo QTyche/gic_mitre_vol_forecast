@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.metadata
 import json
-import platform
 import socket
 import subprocess
 import sys
@@ -14,18 +12,7 @@ from pathlib import Path
 from typing import Any
 
 from qtyche_qrc.config import ProjectConfig
-
-_TRACKED_PACKAGES = ("numpy", "PyYAML", "qtyche-qrc")
-
-
-def _package_versions() -> dict[str, str]:
-    versions: dict[str, str] = {}
-    for package in _TRACKED_PACKAGES:
-        try:
-            versions[package] = importlib.metadata.version(package)
-        except importlib.metadata.PackageNotFoundError:
-            versions[package] = "not-installed"
-    return versions
+from qtyche_qrc.runtime import runtime_metadata
 
 
 def _git_metadata(repository: Path) -> dict[str, Any]:
@@ -67,14 +54,13 @@ def create_manifest(config: ProjectConfig, repository: Path | None = None) -> Pa
     config_bytes = config.source.read_bytes()
     manifest: dict[str, Any] = {
         "schema_version": 1,
+        **runtime_metadata(),
         "experiment": config.experiment.name,
         "created_at_utc": created_at.isoformat(),
         "git": _git_metadata(repository),
         "environment": {
             "python_version": sys.version,
-            "package_versions": _package_versions(),
             "hostname": socket.gethostname(),
-            "platform": platform.platform(),
         },
         "random_seed": config.experiment.seed,
         "configuration": {

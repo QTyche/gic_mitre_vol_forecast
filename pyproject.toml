@@ -22,7 +22,7 @@ dependencies = [
 [project.optional-dependencies]
 dev = [
   "mypy>=1.10,<2",
-  "pandas-stubs>=2.0,<3",
+  "pandas-stubs>=2.2,<2.3",
   "pytest>=8,<9",
   "ruff>=0.6,<1",
   "types-PyYAML>=6,<7",
@@ -53,7 +53,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 quote-style = "double"
 
 [tool.mypy]
-python_version = "3.9"
+python_version = "3.11"
 strict = true
 packages = ["qtyche_qrc"]
 mypy_path = "src"

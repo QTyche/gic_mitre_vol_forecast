@@ -35,6 +35,7 @@ from qtyche_qrc.experiments.run import (
     inspect_experiment,
     run_baseline_experiment,
 )
+from qtyche_qrc.qbraid import QbraidVerificationError, verify_qbraid_environment
 from qtyche_qrc.seed import set_global_seed
 
 
@@ -173,6 +174,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     compare_qrc.add_argument("--results-dir", required=True)
     compare_qrc.add_argument("--output-dir", required=True)
+
+    subparsers.add_parser(
+        "verify-qbraid",
+        help="verify qBraid dependencies, paths, manifests, CLI, and exact backend",
+    )
 
     return parser
 
@@ -318,10 +324,15 @@ def main(argv: Sequence[str] | None = None) -> int:
             )
             print(json.dumps({key: str(value) for key, value in outputs.items()}, indent=2))
             return 0
+        if args.command == "verify-qbraid":
+            report = verify_qbraid_environment(Path.cwd())
+            print(json.dumps(report, indent=2, sort_keys=True))
+            return 0
     except (
         ConfigError,
         DataValidationError,
         FileNotFoundError,
+        QbraidVerificationError,
         SyntheticResultsError,
         ValueError,
     ) as exc:

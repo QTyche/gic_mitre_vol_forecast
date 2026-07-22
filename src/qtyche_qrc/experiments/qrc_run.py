@@ -30,7 +30,6 @@ from qtyche_qrc.experiments.run import (
     _classification_predictions,
     _experiment_directory,
     _git_metadata,
-    _package_versions,
     _regression_predictions,
     _sha256,
     _write_json,
@@ -45,6 +44,7 @@ from qtyche_qrc.models.qrc.features import (
 )
 from qtyche_qrc.models.qrc.readout import QRCClassifier, QRCReadoutConfig, QRCRegressor
 from qtyche_qrc.models.qrc.reservoir import QRCConfig, QuantumReservoir
+from qtyche_qrc.runtime import runtime_metadata
 
 
 @dataclass(frozen=True)
@@ -434,6 +434,7 @@ def run_qrc_experiment(
             configured_seeds = [qrc_config.reservoir_seed]
         manifest = {
             "schema_version": 1,
+            **runtime_metadata(),
             "experiment_id": experiment_dir.name,
             "git": _git_metadata(config.project_root),
             "model_type": config.model_type,
@@ -481,7 +482,6 @@ def run_qrc_experiment(
                 "estimated_peak_density_matrix_bytes"
             ],
             "qrc_features_generated_without_labels": True,
-            "package_versions": _package_versions(),
             "hostname": socket.gethostname(),
             "status": status,
             "warnings": warnings_list,

@@ -1,0 +1,9 @@
+name: qtyche-qrc-phase3
+channels:
+  - conda-forge
+dependencies:
+  - python>=3.11,<3.13
+  - pip>=23
+  - pip:
+      - -r requirements-qbraid.txt
+      - -e .

@@ -15,11 +15,12 @@ import pandas as pd
 import yaml
 from numpy.typing import NDArray
 
-from qtyche_qrc.experiments.run import _git_metadata, _package_versions, _write_json
+from qtyche_qrc.experiments.run import _git_metadata, _write_json
 from qtyche_qrc.models.qrc.backends import trace_distance
 from qtyche_qrc.models.qrc.encoding import array_checksum
 from qtyche_qrc.models.qrc.readout import ridge_solution
 from qtyche_qrc.models.qrc.reservoir import QRCConfig, QuantumReservoir
+from qtyche_qrc.runtime import runtime_metadata
 
 
 @dataclass(frozen=True)
@@ -495,6 +496,7 @@ def characterize_qrc(config_path: Path) -> Path:
     reservoir: QuantumReservoir = primary["reservoir"]
     manifest = {
         "schema_version": 1,
+        **runtime_metadata(),
         "analysis_id": config.analysis_id,
         "created_at_utc": datetime.now(timezone.utc).isoformat(),
         "git": _git_metadata(config.project_root),
@@ -519,7 +521,6 @@ def characterize_qrc(config_path: Path) -> Path:
         "ablation_configuration_count": len(ablation),
         "ablation_seed_count": 1,
         "ablation_used_for_financial_model_selection": False,
-        "package_versions": _package_versions(),
         "status": "success",
     }
     _write_json(output_dir / "manifest.json", manifest)

@@ -187,12 +187,59 @@ transpiled circuit statistics, shot count, and measured runtime.
 
 ## Launch on qBraid
 
-> Placeholder: add the final qBraid Lab launch URL and badge after the hosted
-> repository environment has been created and validated.
+<!-- Replace both uppercase placeholders only after the public repository exists. -->
+[<img src="https://qbraid-static.s3.amazonaws.com/logos/Launch_on_qBraid_white.png" width="150" alt="Launch on qBraid">](https://account.qbraid.com?gitHubUrl=https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git)
+
+The button uses qBraid's official public-repository launch format, but its URL is
+intentionally a placeholder until this project has a final GitHub location.
+After launching qBraid Lab, clone the repository if the button has not already
+done so, then create and activate the pinned Python 3.11 environment:
+
+```bash
+git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git qtyche-qrc
+cd qtyche-qrc
+qbraid envs create -n qtyche-qrc-phase3 -f environment-qbraid.yaml -y
+qbraid envs activate qtyche-qrc-phase3
+./scripts/setup_qbraid.sh
+```
+
+Verify the environment and run the fully offline synthetic smoke with:
+
+```bash
+./scripts/verify_qbraid_environment.sh
+./scripts/reproduce_qbraid_smoke.sh
+```
+
+The smoke writes one orchestration report at
+`results/qbraid/qbraid_smoke_summary.json`, in addition to the normal model
+artifacts. It took about 3.3 seconds after installation on the reference
+workstation; allow one to five minutes in a shared Lab CPU session. Reference
+SHA-256 values include `6d6c9811...d8d78a` for classifier test predictions,
+`30421a37...59310` for regressor test predictions, and
+`252a1988...80c` for the reduced linear-memory table. The full checksums are in
+the summary and in [the qBraid reproduction guide](docs/qbraid_reproduction.md).
+
+When the immutable raw and processed public-market snapshot is already present,
+run one fixed six-qubit seed before the complete seed set:
+
+```bash
+./scripts/reproduce_qbraid_public_pilot.sh --seed 2026
+./scripts/reproduce_qbraid_public_pilot.sh --all-seeds
+```
+
+The public wrapper verifies raw and processed checksums and does not redownload
+data. Plan for roughly two to ten minutes per uncached seed on a shared Lab CPU;
+cache hits should be faster. Missing dependencies, host-specific paths, absent
+snapshots, and checksum mismatches fail clearly. Troubleshooting, cached-data
+layout, exact output expectations, and the agent-executable stage commands are
+documented in `docs/qbraid_reproduction.md`.
 
 The main reproduction workflow will remain backend-agnostic. A targeted hardware
 validation can be added once the challenge organisers confirm the required device
 and mandatory Track A metrics.
+
+The current qBraid run uses an exact NumPy density-matrix simulator inside
+qBraid Lab. It is not a physical quantum-hardware result.
 
 ## Responsible use of generative AI
 

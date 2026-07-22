@@ -3,9 +3,7 @@
 from __future__ import annotations
 
 import hashlib
-import importlib.metadata
 import json
-import platform
 import shutil
 import socket
 import subprocess
@@ -51,6 +49,7 @@ from qtyche_qrc.models.baselines.persistence import (
     RealizedVariancePersistenceRegressor,
 )
 from qtyche_qrc.models.dataset import ModelDataset, ModelSplit, load_model_dataset
+from qtyche_qrc.runtime import package_versions, runtime_metadata
 
 
 class ExperimentRunner(ABC):
@@ -100,13 +99,9 @@ def _git_metadata(root: Path) -> dict[str, Any]:
 
 
 def _package_versions() -> dict[str, str]:
-    versions: dict[str, str] = {}
-    for name in ("numpy", "pandas", "scikit-learn", "matplotlib", "qtyche-qrc"):
-        try:
-            versions[name] = importlib.metadata.version(name)
-        except importlib.metadata.PackageNotFoundError:
-            versions[name] = "not-installed"
-    return versions
+    """Compatibility wrapper for the shared manifest package inventory."""
+
+    return package_versions()
 
 
 def _experiment_directory(config: ModelExperimentConfig) -> Path:
@@ -468,6 +463,7 @@ def run_baseline_experiment(
     finally:
         manifest = {
             "schema_version": 1,
+            **runtime_metadata(),
             "experiment_id": experiment_dir.name,
             "git": _git_metadata(config.project_root),
             "model_type": config.model_type,
@@ -498,9 +494,7 @@ def run_baseline_experiment(
             .get("timing", {})
             .get("validation_prediction_seconds"),
             "test_prediction_time": locals().get("timing", {}).get("test_prediction_seconds"),
-            "package_versions": _package_versions(),
             "hostname": socket.gethostname(),
-            "platform": platform.platform(),
             "model_selection_metric": config.selection_metric,
             "model_selection_trial_count": len(locals().get("trials", [])),
             "status": status,
