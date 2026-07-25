@@ -1,0 +1,120 @@
+schema_version: 1
+study:
+  id: qrc_mnist_common_benchmark_v1
+  project_root: ..
+  output_root: results/qrc_mnist
+  dataset_cache: data/raw/mnist
+  selection_seed: 2026
+  reservoir_seeds: [2026, 2027, 2028]
+dataset:
+  provider: Google-hosted mirror of the original Yann LeCun MNIST IDX files
+  official_training_partition_size: 60000
+  official_test_partition_size: 10000
+  files:
+    train_images:
+      filename: train-images-idx3-ubyte.gz
+      url: https://storage.googleapis.com/cvdf-datasets/mnist/train-images-idx3-ubyte.gz
+      sha256: 440fcabf73cc546fa21475e81ea370265605f56be210a4024d2ca8f203523609
+      md5: f68b3c2dcbeaaa9fbdd348bbdeb94873
+      bytes: 9912422
+    train_labels:
+      filename: train-labels-idx1-ubyte.gz
+      url: https://storage.googleapis.com/cvdf-datasets/mnist/train-labels-idx1-ubyte.gz
+      sha256: 3552534a0a558bbed6aed32b30c495cca23d567ec52cac8be1a0730e8010255c
+      md5: d53e105ee54ea40749a09fcbcd1e9432
+      bytes: 28881
+    test_images:
+      filename: t10k-images-idx3-ubyte.gz
+      url: https://storage.googleapis.com/cvdf-datasets/mnist/t10k-images-idx3-ubyte.gz
+      sha256: 8d422c7b0a1c1c79245a5bcf07fe86e33eeafee792b84584aec276f5a2dbc4e6
+      md5: 9fb629c4189551a2d022fa330f9573f3
+      bytes: 1648877
+    test_labels:
+      filename: t10k-labels-idx1-ubyte.gz
+      url: https://storage.googleapis.com/cvdf-datasets/mnist/t10k-labels-idx1-ubyte.gz
+      sha256: f7ae60f92e00ec6debd23a6088c31dbd2371eca3ffa0defaefb259924204aec6
+      md5: ec29112dd5afa0611ce80d1b7f02629c
+      bytes: 4542
+full:
+  train_per_digit: 600
+  validation_per_digit: 100
+  test_per_digit: 100
+smoke:
+  train_per_digit: 20
+  validation_per_digit: 5
+  test_per_digit: 5
+  reservoir_seeds: [2026]
+preprocessing:
+  image_shape: [28, 28]
+  scale_divisor: 255.0
+  row_steps: 28
+  column_bands:
+    - [0, 6]
+    - [6, 12]
+    - [12, 18]
+    - [18, 23]
+    - [23, 28]
+  temporal_windows:
+    - [0, 7]
+    - [7, 14]
+    - [14, 21]
+    - [21, 28]
+qrc:
+  n_qubits: 5
+  virtual_nodes: 2
+  tau: 1.0
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  input_scaling: 0.5
+  backend: numpy_density_matrix_exact
+  encoding: Ry
+  image_state_policy: reset_between_images_carry_within_image
+  input_reinjection: partial_input_qubit_reinjection
+  observables: [Z_i, unique_ring_edge_Z_i_Z_j]
+  row_feature_dimension: 20
+  temporal_summaries:
+    - final_row
+    - mean
+    - standard_deviation
+    - four_equal_window_means
+  image_feature_dimension: 140
+readout:
+  type: multinomial_logistic_regression
+  regularization_c_grid: [0.01, 0.1, 1.0, 10.0]
+  selection_metric: macro_f1
+  selection_split: validation
+  max_iterations: 1000
+baselines:
+  logistic:
+    input: flattened_28_by_5_band_sequence
+    feature_dimension: 140
+  esn:
+    reservoir_size: 32
+    spectral_radius: 0.9
+    input_scaling: 0.5
+    leaking_rate: 0.4
+    sparsity: 0.1
+    reservoir_seed: 2026
+    temporal_summaries: same_as_qrc
+    feature_dimension: 224
+robustness:
+  reservoir_seed: 2026
+  measurement_seed: 2026
+  conditions:
+    - id: analytic
+      shots: null
+      depolarizing_probability: 0.0
+      measurement_bit_flip_probability: 0.0
+    - id: shots_2048
+      shots: 2048
+      depolarizing_probability: 0.0
+      measurement_bit_flip_probability: 0.0
+    - id: depolarizing_0_01
+      shots: 2048
+      depolarizing_probability: 0.01
+      measurement_bit_flip_probability: 0.0
+    - id: measurement_flip_0_02
+      shots: 2048
+      depolarizing_probability: 0.0
+      measurement_bit_flip_probability: 0.02

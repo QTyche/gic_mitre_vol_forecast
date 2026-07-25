@@ -351,6 +351,47 @@ econometric baseline, and the QRC comparator is exact classical simulation—not
 physical-QPU execution or evidence of quantum advantage. See
 `docs/garch_baseline.md`.
 
+## Common MNIST QRC benchmark
+
+Stage 1E is an isolated challenge-compliance workflow for genuine MNIST digit
+classification. It does not reopen the frozen financial architecture. Download
+and checksum-verify the four official IDX files, then run the deterministic
+one-seed smoke or the complete three-seed benchmark:
+
+```bash
+python scripts/run_qrc_mnist.py --download-only
+python scripts/run_qrc_mnist.py --smoke
+python scripts/run_qrc_mnist.py --smoke
+python scripts/run_qrc_mnist.py
+```
+
+The full split contains 6,000 training, 1,000 validation, and 1,000 test images,
+balanced across digits 0–9. Selection seed 2026 draws disjoint training and
+validation subsets only from the official training partition and draws test
+examples only from the official test partition. The runner never substitutes
+synthetic data.
+
+Each image becomes a 28-step sequence of five fixed column-band means. The
+five-qubit, two-virtual-node QRC resets between images and carries state only
+between rows of the same image. Its final, mean, population-standard-deviation,
+and four window-mean summaries produce 140 features. Validation-only
+regularisation selection is used for the multinomial readouts. Directly
+comparable flattened logistic and 32-state ESN baselines use the same images;
+one fixed QRC seed also covers analytic, 2,048-shot, depolarising, and
+measurement-bit-flip simulations.
+
+Outputs are isolated under `results/qrc_mnist/` and include manifests, selected
+indices, deterministic feature caches, validation/test predictions, per-run and
+aggregated CSV/JSON tables, models, runtime/resource diagnostics, and seven
+PNG/PDF figure pairs. The compressed source download is about 11.0 MiB and is
+cached under `data/raw/mnist/`. See `docs/qrc_mnist_benchmark.md` for the exact
+data, feature, output, runtime, resumption, and qBraid contracts.
+
+This workflow is exact classical density-matrix simulation of a quantum
+reservoir plus explicitly labelled finite-shot/noise simulations. It does not
+execute on a physical QPU and provides no evidence or claim of quantum
+advantage.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training
