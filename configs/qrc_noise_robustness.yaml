@@ -1,0 +1,37 @@
+schema_version: 1
+study:
+  id: qrc_shot_noise_robustness_v1
+  project_root: ..
+  output_root: results/qrc_noise_robustness
+  classifier_reference: configs/models/qrc_classifier_pilot.yaml
+  classifier_reference_sha256: 65a8b098aa466b2ab0b336cb8f5f6cabe412c43a2e8b27673d427304c24e0002
+  regressor_reference: configs/models/qrc_regressor_pilot.yaml
+  regressor_reference_sha256: 3a3c1d75521c6e0ac027686fade31d319c16108a699efbde1eeb147bc4158bb3
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  selected_n_qubits: 2
+  reservoir_seeds: [2026, 2027, 2028]
+  measurement_seeds: [0, 1, 2]
+studies:
+  finite_shot:
+    shots: [128, 512, 2048, 8192]
+  depolarizing_noise:
+    shots: 2048
+    probabilities: [0.0, 0.0001, 0.001, 0.01]
+  measurement_noise:
+    shots: 2048
+    probabilities: [0.0, 0.005, 0.01, 0.02]
+smoke:
+  reservoir_seeds: [2026]
+  measurement_seeds: [0, 1]
+  finite_shot_shots: [128, 2048]
+  depolarizing_probabilities: [0.0, 0.01]
+  measurement_noise_probabilities: [0.0, 0.02]
+fixed_qrc:
+  virtual_nodes: 2
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  tau: 1.0
+  input_scaling: 0.5
+  state_policy: carry_inputs
+  backend: numpy_density_matrix_exact

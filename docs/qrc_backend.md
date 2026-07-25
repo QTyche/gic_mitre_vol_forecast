@@ -42,3 +42,19 @@ transparent analytical estimate, not a process-level profiler measurement.
 Actual peak resident memory is higher because SciPy operations, eigensolver
 workspace, Python objects, cached features, readouts, and artifacts are not
 included.
+
+## Controlled shot and noise extension
+
+The robustness experiment retains this exact density-matrix backend and adds
+measurement sampling and optional channels in
+`models/qrc/noise.py` and `models/qrc/robust_features.py`. Those features use a
+separate versioned cache namespace, so exact pilot and qubit-scaling cache keys
+remain unchanged.
+
+Finite-shot measurement samples computational-basis bitstrings from the
+density-matrix diagonal. Every Z and graph-edge ZZ observable for a
+virtual-node state is estimated from the same bitstring batch. Local
+depolarisation is applied exactly as a density-matrix channel after each
+virtual-node unitary and before measurement. Measurement bit flips affect only
+sampled classical bits and do not alter the propagated density matrix. See
+`docs/qrc_noise_robustness.md` for the precise channel convention.

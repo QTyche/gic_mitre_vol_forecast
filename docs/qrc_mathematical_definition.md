@@ -80,3 +80,19 @@ floored only by the existing evaluation policy.
 
 Validation state may depend on training inputs; test state may depend on train
 and validation inputs. No label enters either state transition.
+
+## Finite-shot observable extension
+
+For a finite budget `S`, one computational-basis batch
+`b^(1), ..., b^(S)` is sampled from `diag(rho)` after each virtual-node
+evolution. With `z_i^(s) = 1 - 2 b_i^(s)`,
+
+```text
+<Z_i>_S     = (1/S) sum_s z_i^(s)
+<Z_i Z_j>_S = (1/S) sum_s z_i^(s) z_j^(s).
+```
+
+The same sampled bitstrings determine every Z and ZZ value; observables are not
+sampled independently. The analytic path above remains the infinite-shot
+reference. Optional controlled channels and their placement are defined in
+`docs/qrc_noise_robustness.md`.

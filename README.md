@@ -202,6 +202,30 @@ is run. This is exact classical density-matrix simulation of a quantum
 reservoir, not physical-QPU execution or evidence of quantum advantage. See
 `docs/qrc_qubit_scaling.md` for the output contract and interpretation guidance.
 
+### Finite-shot and simulated-noise robustness
+
+The next controlled study uses the two-qubit scaling winner by default and
+varies one measurement factor at a time: finite shots, local depolarising
+probability, or independent measurement-bit-flip probability. Run the compact
+public-data smoke or the complete configured grid with:
+
+```bash
+python scripts/run_qrc_noise_robustness.py --smoke
+python scripts/run_qrc_noise_robustness.py
+```
+
+`--n-qubits N` overrides the default selected architecture without changing the
+other controls. The runner verifies the frozen raw and processed data,
+validation-selects each readout, shares label-free features between classifier
+and regressor, and resumes complete task runs. Results, seed-level
+aggregations, prediction-stability diagnostics, resource estimates, and PNG/PDF
+figures are isolated below `results/qrc_noise_robustness/`.
+
+The channels are explicit controlled simulations, not hardware-calibrated
+device models. State evolution and channel application use classical
+density-matrix computation; no physical QPU is used and no quantum-advantage
+claim is supported. See `docs/qrc_noise_robustness.md`.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training
