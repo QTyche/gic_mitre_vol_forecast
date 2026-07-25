@@ -1,0 +1,252 @@
+{
+  "columns": [
+    {
+      "key": "section",
+      "label": "Section"
+    },
+    {
+      "key": "model_or_condition",
+      "label": "Model or condition"
+    },
+    {
+      "key": "accuracy",
+      "label": "Accuracy \u2191"
+    },
+    {
+      "key": "macro_f1",
+      "label": "Macro-F1 \u2191"
+    },
+    {
+      "key": "balanced_accuracy",
+      "label": "Balanced acc. \u2191"
+    },
+    {
+      "key": "macro_roc_auc",
+      "label": "Macro ROC-AUC \u2191"
+    },
+    {
+      "key": "holm_annotation",
+      "label": "Inference or scope"
+    }
+  ],
+  "footnotes": [
+    "Exact QRC is mean \u00b1 population SD across seeds 2026-2028.",
+    "QRC versus flattened logistic was not Holm-significant; ESN was significantly higher than QRC.",
+    "Robustness rows use frozen seed-2026 predictions and were not significance-tested."
+  ],
+  "rows": [
+    {
+      "accuracy": 0.889,
+      "accuracy_display": "0.889",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.8889999999999999,
+      "balanced_accuracy_display": "0.889",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "No Holm-adjusted QRC difference",
+      "holm_annotation_display": "No Holm-adjusted QRC difference",
+      "macro_f1": 0.8881162703648651,
+      "macro_f1_display": "0.888",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.9870033333333332,
+      "macro_roc_auc_display": "0.987",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "Flattened logistic",
+      "section": "Model comparison",
+      "trace_fact_ids": [
+        "mnist.inference.accuracy.qrc_vs_flattened_logistic.ci_lower",
+        "mnist.inference.accuracy.qrc_vs_flattened_logistic.ci_upper",
+        "mnist.inference.accuracy.qrc_vs_flattened_logistic.difference",
+        "mnist.inference.accuracy.qrc_vs_flattened_logistic.holm_p",
+        "mnist.inference.balanced_accuracy.qrc_vs_flattened_logistic.ci_lower",
+        "mnist.inference.balanced_accuracy.qrc_vs_flattened_logistic.ci_upper",
+        "mnist.inference.balanced_accuracy.qrc_vs_flattened_logistic.difference",
+        "mnist.inference.balanced_accuracy.qrc_vs_flattened_logistic.holm_p",
+        "mnist.inference.macro_f1.qrc_vs_flattened_logistic.ci_lower",
+        "mnist.inference.macro_f1.qrc_vs_flattened_logistic.ci_upper",
+        "mnist.inference.macro_f1.qrc_vs_flattened_logistic.difference",
+        "mnist.inference.macro_f1.qrc_vs_flattened_logistic.holm_p",
+        "mnist.inference.macro_roc_auc.qrc_vs_flattened_logistic.ci_lower",
+        "mnist.inference.macro_roc_auc.qrc_vs_flattened_logistic.ci_upper",
+        "mnist.inference.macro_roc_auc.qrc_vs_flattened_logistic.difference",
+        "mnist.inference.macro_roc_auc.qrc_vs_flattened_logistic.holm_p",
+        "mnist.test.flattened_logistic.accuracy",
+        "mnist.test.flattened_logistic.balanced_accuracy",
+        "mnist.test.flattened_logistic.macro_f1",
+        "mnist.test.flattened_logistic.macro_roc_auc"
+      ]
+    },
+    {
+      "accuracy": 0.934,
+      "accuracy_display": "0.934",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.9339999999999999,
+      "balanced_accuracy_display": "0.934",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "ESN higher than QRC on all metrics (Holm-adjusted)",
+      "holm_annotation_display": "ESN higher than QRC on all metrics (Holm-adjusted)",
+      "macro_f1": 0.9340400122302771,
+      "macro_f1_display": "0.934",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.9953611111111111,
+      "macro_roc_auc_display": "0.995",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "Size-controlled ESN",
+      "section": "Model comparison",
+      "trace_fact_ids": [
+        "mnist.inference.accuracy.qrc_vs_esn.ci_lower",
+        "mnist.inference.accuracy.qrc_vs_esn.ci_upper",
+        "mnist.inference.accuracy.qrc_vs_esn.difference",
+        "mnist.inference.accuracy.qrc_vs_esn.holm_p",
+        "mnist.inference.balanced_accuracy.qrc_vs_esn.ci_lower",
+        "mnist.inference.balanced_accuracy.qrc_vs_esn.ci_upper",
+        "mnist.inference.balanced_accuracy.qrc_vs_esn.difference",
+        "mnist.inference.balanced_accuracy.qrc_vs_esn.holm_p",
+        "mnist.inference.macro_f1.qrc_vs_esn.ci_lower",
+        "mnist.inference.macro_f1.qrc_vs_esn.ci_upper",
+        "mnist.inference.macro_f1.qrc_vs_esn.difference",
+        "mnist.inference.macro_f1.qrc_vs_esn.holm_p",
+        "mnist.inference.macro_roc_auc.qrc_vs_esn.ci_lower",
+        "mnist.inference.macro_roc_auc.qrc_vs_esn.ci_upper",
+        "mnist.inference.macro_roc_auc.qrc_vs_esn.difference",
+        "mnist.inference.macro_roc_auc.qrc_vs_esn.holm_p",
+        "mnist.test.size_controlled_esn.accuracy",
+        "mnist.test.size_controlled_esn.balanced_accuracy",
+        "mnist.test.size_controlled_esn.macro_f1",
+        "mnist.test.size_controlled_esn.macro_roc_auc"
+      ]
+    },
+    {
+      "accuracy": 0.874,
+      "accuracy_display": "0.874 \u00b1 0.005",
+      "accuracy_sd": 0.004966554808583784,
+      "balanced_accuracy": 0.874,
+      "balanced_accuracy_display": "0.874 \u00b1 0.005",
+      "balanced_accuracy_sd": 0.004966554808583792,
+      "holm_annotation": "Mean \u00b1 population SD across seeds 2026-2028",
+      "holm_annotation_display": "Mean \u00b1 population SD across seeds 2026-2028",
+      "macro_f1": 0.8736507968366499,
+      "macro_f1_display": "0.874 \u00b1 0.005",
+      "macro_f1_sd": 0.005216274772090296,
+      "macro_roc_auc": 0.987384074074074,
+      "macro_roc_auc_display": "0.987 \u00b1 0.001",
+      "macro_roc_auc_sd": 0.000604788391611716,
+      "model_or_condition": "Exact QRC mean",
+      "section": "Model comparison",
+      "trace_fact_ids": [
+        "mnist.architecture.seed_2026",
+        "mnist.architecture.seed_2027",
+        "mnist.architecture.seed_2028",
+        "mnist.test.exact_qrc_mean.accuracy",
+        "mnist.test.exact_qrc_mean.accuracy.population_standard_deviation",
+        "mnist.test.exact_qrc_mean.balanced_accuracy",
+        "mnist.test.exact_qrc_mean.balanced_accuracy.population_standard_deviation",
+        "mnist.test.exact_qrc_mean.macro_f1",
+        "mnist.test.exact_qrc_mean.macro_f1.population_standard_deviation",
+        "mnist.test.exact_qrc_mean.macro_roc_auc",
+        "mnist.test.exact_qrc_mean.macro_roc_auc.population_standard_deviation"
+      ]
+    },
+    {
+      "accuracy": 0.871,
+      "accuracy_display": "0.871",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.8710000000000001,
+      "balanced_accuracy_display": "0.871",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "Frozen seed-2026 prediction condition; no significance test",
+      "holm_annotation_display": "Frozen seed-2026 prediction condition; no significance test",
+      "macro_f1": 0.8704003764132844,
+      "macro_f1_display": "0.870",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.9866988888888887,
+      "macro_roc_auc_display": "0.987",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "Analytic (seed 2026)",
+      "section": "QRC robustness",
+      "trace_fact_ids": [
+        "mnist.architecture.seed_2026",
+        "mnist.test.analytic_seed_2026.accuracy",
+        "mnist.test.analytic_seed_2026.balanced_accuracy",
+        "mnist.test.analytic_seed_2026.macro_f1",
+        "mnist.test.analytic_seed_2026.macro_roc_auc"
+      ]
+    },
+    {
+      "accuracy": 0.504,
+      "accuracy_display": "0.504",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.5039999999999999,
+      "balanced_accuracy_display": "0.504",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "Frozen seed-2026 prediction condition; no significance test",
+      "holm_annotation_display": "Frozen seed-2026 prediction condition; no significance test",
+      "macro_f1": 0.5010586719286134,
+      "macro_f1_display": "0.501",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.8685922222222222,
+      "macro_roc_auc_display": "0.869",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "2,048 shots (seed 2026)",
+      "section": "QRC robustness",
+      "trace_fact_ids": [
+        "mnist.architecture.seed_2026",
+        "mnist.test.2_048_shots_seed_2026.accuracy",
+        "mnist.test.2_048_shots_seed_2026.balanced_accuracy",
+        "mnist.test.2_048_shots_seed_2026.macro_f1",
+        "mnist.test.2_048_shots_seed_2026.macro_roc_auc"
+      ]
+    },
+    {
+      "accuracy": 0.492,
+      "accuracy_display": "0.492",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.492,
+      "balanced_accuracy_display": "0.492",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "Frozen seed-2026 prediction condition; no significance test",
+      "holm_annotation_display": "Frozen seed-2026 prediction condition; no significance test",
+      "macro_f1": 0.48821594423669057,
+      "macro_f1_display": "0.488",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.8600544444444445,
+      "macro_roc_auc_display": "0.860",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "2,048 shots + depolarising 0.01",
+      "section": "QRC robustness",
+      "trace_fact_ids": [
+        "mnist.architecture.seed_2026",
+        "mnist.test.2_048_shots_depolarising_0_01.accuracy",
+        "mnist.test.2_048_shots_depolarising_0_01.balanced_accuracy",
+        "mnist.test.2_048_shots_depolarising_0_01.macro_f1",
+        "mnist.test.2_048_shots_depolarising_0_01.macro_roc_auc"
+      ]
+    },
+    {
+      "accuracy": 0.485,
+      "accuracy_display": "0.485",
+      "accuracy_sd": null,
+      "balanced_accuracy": 0.485,
+      "balanced_accuracy_display": "0.485",
+      "balanced_accuracy_sd": null,
+      "holm_annotation": "Frozen seed-2026 prediction condition; no significance test",
+      "holm_annotation_display": "Frozen seed-2026 prediction condition; no significance test",
+      "macro_f1": 0.4817618528543086,
+      "macro_f1_display": "0.482",
+      "macro_f1_sd": null,
+      "macro_roc_auc": 0.8632888888888889,
+      "macro_roc_auc_display": "0.863",
+      "macro_roc_auc_sd": null,
+      "model_or_condition": "2,048 shots + measurement flip 0.02",
+      "section": "QRC robustness",
+      "trace_fact_ids": [
+        "mnist.architecture.seed_2026",
+        "mnist.test.2_048_shots_measurement_flip_0_02.accuracy",
+        "mnist.test.2_048_shots_measurement_flip_0_02.balanced_accuracy",
+        "mnist.test.2_048_shots_measurement_flip_0_02.macro_f1",
+        "mnist.test.2_048_shots_measurement_flip_0_02.macro_roc_auc"
+      ]
+    }
+  ],
+  "schema_version": 1,
+  "title": "Frozen MNIST benchmark and QRC robustness"
+}

@@ -1,0 +1,554 @@
+{
+  "generation_command": "python scripts/freeze_publication_assets.py",
+  "git_commit": "a5c9f73ddee00a483299f22a5887a3dab6a7819c",
+  "manifest_self_checksum_excluded": true,
+  "no_new_hypothesis_tests": true,
+  "no_new_model_execution": true,
+  "no_recalibration_or_ensembling": true,
+  "no_test_based_selection": true,
+  "operating_system": "macOS-26.3-arm64-arm-64bit",
+  "package_versions": {
+    "PyYAML": "6.0.3",
+    "matplotlib": "3.9.4",
+    "mypy": "1.19.1",
+    "numpy": "2.0.2",
+    "pandas": "2.3.3",
+    "pytest": "8.4.2",
+    "qtyche-qrc": "0.1.0",
+    "ruff": "0.15.22",
+    "scikit-learn": "1.6.1",
+    "scipy": "1.13.1"
+  },
+  "publication_assets_frozen": true,
+  "python_version": "3.9.6",
+  "quantum_advantage_claim": false,
+  "schema_version": 1,
+  "selected_asset_count": 42,
+  "selected_assets": [
+    {
+      "asset_id": "appendix/README.md",
+      "bytes": 414,
+      "path": "paper_assets/appendix/README.md",
+      "role": "appendix",
+      "sha256": "5bbae848c4f2817fc4de95b966ec242887c1fe0dffc7e2e6211949178b85f9b6"
+    },
+    {
+      "asset_id": "appendix/confusion_matrices.pdf",
+      "bytes": 24317,
+      "path": "paper_assets/appendix/confusion_matrices.pdf",
+      "role": "appendix",
+      "sha256": "2d63eeb4d0cae03291abde46f434ef6fa456dd133bc6c692113fd9c2ba11cf72"
+    },
+    {
+      "asset_id": "appendix/confusion_matrices.png",
+      "bytes": 284696,
+      "path": "paper_assets/appendix/confusion_matrices.png",
+      "role": "appendix",
+      "sha256": "884967396d60038a394e8926b10b100e69b877abf15d7090d439d32534332902"
+    },
+    {
+      "asset_id": "appendix/mincer_zarnowitz.pdf",
+      "bytes": 20301,
+      "path": "paper_assets/appendix/mincer_zarnowitz.pdf",
+      "role": "appendix",
+      "sha256": "643b5f1842540315c8627d08f654ba31d93c6ca31f0ec471be9919abaaea8739"
+    },
+    {
+      "asset_id": "appendix/mincer_zarnowitz.png",
+      "bytes": 100592,
+      "path": "paper_assets/appendix/mincer_zarnowitz.png",
+      "role": "appendix",
+      "sha256": "23f1b055f04abe1304758c3a07efd80ead477218e5bf8d89a6893c733898aae0"
+    },
+    {
+      "asset_id": "appendix/mnist_per_digit.pdf",
+      "bytes": 18434,
+      "path": "paper_assets/appendix/mnist_per_digit.pdf",
+      "role": "appendix",
+      "sha256": "6a0f2118580ee0d8a30ae1f0abaaacf9d33c043ae0a1c1f9bfd19d5c968ef806"
+    },
+    {
+      "asset_id": "appendix/mnist_per_digit.png",
+      "bytes": 158838,
+      "path": "paper_assets/appendix/mnist_per_digit.png",
+      "role": "appendix",
+      "sha256": "f3fc4bc22aec59d309c9e4910b741834a15a6e021b702bd8bcf7079f87a0dcd7"
+    },
+    {
+      "asset_id": "appendix/numerical_conditioning.pdf",
+      "bytes": 17623,
+      "path": "paper_assets/appendix/numerical_conditioning.pdf",
+      "role": "appendix",
+      "sha256": "7dfd858090e4d72840c2221bbbe1bb2e79f9635a768f41fdfb3aafb21ab50965"
+    },
+    {
+      "asset_id": "appendix/numerical_conditioning.png",
+      "bytes": 124453,
+      "path": "paper_assets/appendix/numerical_conditioning.png",
+      "role": "appendix",
+      "sha256": "795ae14ca3b836d40338b9d5865a27ff7f949edc9bf86c3fa5afc69317480994"
+    },
+    {
+      "asset_id": "appendix/rolling_qlike.pdf",
+      "bytes": 38339,
+      "path": "paper_assets/appendix/rolling_qlike.pdf",
+      "role": "appendix",
+      "sha256": "ffeb0a020bb2687d1d331e621d955a856f5654278c1fcf163a3361fe9a481d85"
+    },
+    {
+      "asset_id": "appendix/rolling_qlike.png",
+      "bytes": 381279,
+      "path": "paper_assets/appendix/rolling_qlike.png",
+      "role": "appendix",
+      "sha256": "d3c43a0fdf30581368a35702cc192a92cafb60321710971c9fae00bce3240da7"
+    },
+    {
+      "asset_id": "appendix/transition_types.pdf",
+      "bytes": 17045,
+      "path": "paper_assets/appendix/transition_types.pdf",
+      "role": "appendix",
+      "sha256": "80bf88025d2cfa27ed83b03e39f857aa99ff2b8df56a5e3c2d81c1afbbdc4e4a"
+    },
+    {
+      "asset_id": "appendix/transition_types.png",
+      "bytes": 134800,
+      "path": "paper_assets/appendix/transition_types.png",
+      "role": "appendix",
+      "sha256": "8d92484a7cde09c37e73b24003bad82cd9fb0c8af0295ecdbba3bbd589e68cf8"
+    },
+    {
+      "asset_id": "appendix/variance_calibration.pdf",
+      "bytes": 21311,
+      "path": "paper_assets/appendix/variance_calibration.pdf",
+      "role": "appendix",
+      "sha256": "3d0e3b7fcdf47de0411a1cc6d94e3ec3b745971d8955e9482b72379f668a3aa5"
+    },
+    {
+      "asset_id": "appendix/variance_calibration.png",
+      "bytes": 237037,
+      "path": "paper_assets/appendix/variance_calibration.png",
+      "role": "appendix",
+      "sha256": "8b8d2a5317f41a145af591ef1c88e014640144db6469a74875126b56ce7f936f"
+    },
+    {
+      "asset_id": "figure_captions.md",
+      "bytes": 1435,
+      "path": "paper_assets/figure_captions.md",
+      "role": "paper_support",
+      "sha256": "c7422a70d1f7368f8085190f73fe22118e780b98ddbf66e168c52ae54ccc4c98"
+    },
+    {
+      "asset_id": "final_results_manifest.json",
+      "bytes": 267642,
+      "path": "paper_assets/final_results_manifest.json",
+      "role": "paper_support",
+      "sha256": "a6cc26b63c6931e70e07b4c513fded101786c4dc52c0bc115bdc5294cfbe32d8"
+    },
+    {
+      "asset_id": "final_results_manifest.md",
+      "bytes": 105104,
+      "path": "paper_assets/final_results_manifest.md",
+      "role": "paper_support",
+      "sha256": "119041019de5e8a5c4bc6860dd6e59de6cf394dee1e0a13e144a846210480252"
+    },
+    {
+      "asset_id": "limitations_factsheet.md",
+      "bytes": 1153,
+      "path": "paper_assets/limitations_factsheet.md",
+      "role": "paper_support",
+      "sha256": "0a0e3287d7dde27ee2cc62ee96c528f311b0be709a1d70c7db4061ef0b60588d"
+    },
+    {
+      "asset_id": "page_footprint.md",
+      "bytes": 728,
+      "path": "paper_assets/page_footprint.md",
+      "role": "paper_support",
+      "sha256": "85c1825fb1644453b77c3442a833cd437537e32859686ed9f6cd9784aeb0ce17"
+    },
+    {
+      "asset_id": "publication_figure_1_architecture_selection_pdf",
+      "bytes": 25097,
+      "path": "paper_assets/figures/publication_figure_1_architecture_selection.pdf",
+      "role": "main_figure",
+      "sha256": "135d76f1b15a88f1de260863ac228021fdd9ae0c57f46f63f00153e241fde965"
+    },
+    {
+      "asset_id": "publication_figure_1_architecture_selection_png",
+      "bytes": 449618,
+      "path": "paper_assets/figures/publication_figure_1_architecture_selection.png",
+      "role": "main_figure",
+      "sha256": "5b75646f1e1d14667c44e7c8500798ada00a10a4566ba89603f04373102489f3"
+    },
+    {
+      "asset_id": "publication_figure_2_financial_comparison_pdf",
+      "bytes": 26065,
+      "path": "paper_assets/figures/publication_figure_2_financial_comparison.pdf",
+      "role": "main_figure",
+      "sha256": "4df86f6a34dbe2bc6e91daf6e8385ae2aa491009482101ae58da5142b25444a5"
+    },
+    {
+      "asset_id": "publication_figure_2_financial_comparison_png",
+      "bytes": 194212,
+      "path": "paper_assets/figures/publication_figure_2_financial_comparison.png",
+      "role": "main_figure",
+      "sha256": "e06deeaf994261c7a283a63c4c0b9be6e6be89e3d644dd6b82b3cad3393d2b9c"
+    },
+    {
+      "asset_id": "publication_figure_3_financial_robustness_pdf",
+      "bytes": 32676,
+      "path": "paper_assets/figures/publication_figure_3_financial_robustness.pdf",
+      "role": "main_figure",
+      "sha256": "57763697007ae62d269cc5f4cc485e8ec5e9ff91aa4eed8386a9c584de146695"
+    },
+    {
+      "asset_id": "publication_figure_3_financial_robustness_png",
+      "bytes": 326611,
+      "path": "paper_assets/figures/publication_figure_3_financial_robustness.png",
+      "role": "main_figure",
+      "sha256": "c1d521ff5759561cdb9abfeceb71b0a486b5397992f9b05383eedb233eaf1707"
+    },
+    {
+      "asset_id": "publication_figure_4_mnist_benchmark_pdf",
+      "bytes": 20799,
+      "path": "paper_assets/figures/publication_figure_4_mnist_benchmark.pdf",
+      "role": "main_figure",
+      "sha256": "96eed1a4175cd1928895887da5be8dfae9c916c0719e140c63c4e3169cd77bde"
+    },
+    {
+      "asset_id": "publication_figure_4_mnist_benchmark_png",
+      "bytes": 252975,
+      "path": "paper_assets/figures/publication_figure_4_mnist_benchmark.png",
+      "role": "main_figure",
+      "sha256": "9e8ae3ee2c0a2b8051cdf292782ad7eb32c099ce356f7e314ca16264485b1220"
+    },
+    {
+      "asset_id": "publication_table_1_experiment_design_csv",
+      "bytes": 2880,
+      "path": "paper_assets/tables/publication_table_1_experiment_design.csv",
+      "role": "main_table",
+      "sha256": "890444d1a85897bdbf21baa497ca66d6c77f280c318bda9e521966cecaf358ab"
+    },
+    {
+      "asset_id": "publication_table_1_experiment_design_json",
+      "bytes": 5934,
+      "path": "paper_assets/tables/publication_table_1_experiment_design.json",
+      "role": "main_table",
+      "sha256": "4fe12c63b1c0efc434229119eb3f8eee422fba72aa2246e58a19ec9b03270979"
+    },
+    {
+      "asset_id": "publication_table_1_experiment_design_md",
+      "bytes": 1691,
+      "path": "paper_assets/tables/publication_table_1_experiment_design.md",
+      "role": "main_table",
+      "sha256": "2af0ced811e7d7fd0e8be55e55a18bc812e98d83b544cda79383b15ff9e81ad9"
+    },
+    {
+      "asset_id": "publication_table_1_experiment_design_tex",
+      "bytes": 1859,
+      "path": "paper_assets/tables/publication_table_1_experiment_design.tex",
+      "role": "main_table",
+      "sha256": "00c7694f164b8badc9abba52841e621f8f59215cc213de8c89138038972d5ab4"
+    },
+    {
+      "asset_id": "publication_table_2_financial_benchmark_csv",
+      "bytes": 8878,
+      "path": "paper_assets/tables/publication_table_2_financial_benchmark.csv",
+      "role": "main_table",
+      "sha256": "aee9607e76148224cd887884f04ff2d456b7f92bc5f1be79342873c2215ef9fa"
+    },
+    {
+      "asset_id": "publication_table_2_financial_benchmark_json",
+      "bytes": 16331,
+      "path": "paper_assets/tables/publication_table_2_financial_benchmark.json",
+      "role": "main_table",
+      "sha256": "fe82b17b076bf7188d470b3142acda186338cccdbc42cbea44007ee7a68a70f2"
+    },
+    {
+      "asset_id": "publication_table_2_financial_benchmark_md",
+      "bytes": 1419,
+      "path": "paper_assets/tables/publication_table_2_financial_benchmark.md",
+      "role": "main_table",
+      "sha256": "464972061f740b3012449b16d87c76a2b5a2cfc8bad3e33afb4e7680d7263443"
+    },
+    {
+      "asset_id": "publication_table_2_financial_benchmark_tex",
+      "bytes": 1647,
+      "path": "paper_assets/tables/publication_table_2_financial_benchmark.tex",
+      "role": "main_table",
+      "sha256": "c86c3e384058e7c1b87d098712306ca80cac51a82fa2c6f6d5ef9b12739e6e6e"
+    },
+    {
+      "asset_id": "publication_table_3_mnist_benchmark_csv",
+      "bytes": 5037,
+      "path": "paper_assets/tables/publication_table_3_mnist_benchmark.csv",
+      "role": "main_table",
+      "sha256": "b5c8777d477df2cdbfec965a001ee7196ca1fa10a42a6438cd95b031351c3fa8"
+    },
+    {
+      "asset_id": "publication_table_3_mnist_benchmark_json",
+      "bytes": 10508,
+      "path": "paper_assets/tables/publication_table_3_mnist_benchmark.json",
+      "role": "main_table",
+      "sha256": "5a6a8ace43d107cf4c09b6153f0b4cb359e53f0e6f3765396cece1e621e6d202"
+    },
+    {
+      "asset_id": "publication_table_3_mnist_benchmark_md",
+      "bytes": 1419,
+      "path": "paper_assets/tables/publication_table_3_mnist_benchmark.md",
+      "role": "main_table",
+      "sha256": "23fb76170781c8e467f56cfa971ba0b11e5ac27d6a5d0d93c11222789c1123e0"
+    },
+    {
+      "asset_id": "publication_table_3_mnist_benchmark_tex",
+      "bytes": 1648,
+      "path": "paper_assets/tables/publication_table_3_mnist_benchmark.tex",
+      "role": "main_table",
+      "sha256": "b0f20dea358fa5f623e9dbe8af8ccf8beb63e37a3cb095390d12576513f61d2d"
+    },
+    {
+      "asset_id": "reproducibility_factsheet.md",
+      "bytes": 1821,
+      "path": "paper_assets/reproducibility_factsheet.md",
+      "role": "paper_support",
+      "sha256": "f0c232f9cf6f1a453f9d07b6e45a2bb4d1b57572cb24de3af329632981c863b5"
+    },
+    {
+      "asset_id": "results_factsheet.md",
+      "bytes": 893,
+      "path": "paper_assets/results_factsheet.md",
+      "role": "paper_support",
+      "sha256": "4ea3b73d062c1944800393b6a74b7e9658f5a3e973a7a5f3a74753a00b7515b5"
+    }
+  ],
+  "source_artifacts": [
+    {
+      "bytes": 12584,
+      "path": "data/processed/public_market/data_manifest.json",
+      "sha256": "97c280252b0aeabc2e524d97da4c152f5a3f11429a223044600dc99a1edafd33",
+      "source_id": "sources.public_data_manifest"
+    },
+    {
+      "bytes": 419,
+      "path": "data/processed/public_market/regime_thresholds.json",
+      "sha256": "8ef5126d83c709ce52b268d6f5178f078c5c3439fc769ce465fe4986782864e8",
+      "source_id": "sources.regime_thresholds"
+    },
+    {
+      "bytes": 14350,
+      "path": "results/benchmark_diagnostics/benchmark_diagnostics_summary.json",
+      "sha256": "59cff5616816428469480f56855e09e012554d194aa514ed025db4ffb5643b7a",
+      "source_id": "sources.benchmark_diagnostics_summary"
+    },
+    {
+      "bytes": 18434,
+      "path": "results/benchmark_diagnostics/figures/mnist_per_digit_f1.pdf",
+      "sha256": "6a0f2118580ee0d8a30ae1f0abaaacf9d33c043ae0a1c1f9bfd19d5c968ef806",
+      "source_id": "appendix_assets.mnist_per_digit.pdf"
+    },
+    {
+      "bytes": 158838,
+      "path": "results/benchmark_diagnostics/figures/mnist_per_digit_f1.png",
+      "sha256": "f3fc4bc22aec59d309c9e4910b741834a15a6e021b702bd8bcf7079f87a0dcd7",
+      "source_id": "appendix_assets.mnist_per_digit.png"
+    },
+    {
+      "bytes": 17623,
+      "path": "results/benchmark_diagnostics/figures/qrc_seed_numerical_conditioning.pdf",
+      "sha256": "7dfd858090e4d72840c2221bbbe1bb2e79f9635a768f41fdfb3aafb21ab50965",
+      "source_id": "appendix_assets.numerical_conditioning.pdf"
+    },
+    {
+      "bytes": 124453,
+      "path": "results/benchmark_diagnostics/figures/qrc_seed_numerical_conditioning.png",
+      "sha256": "795ae14ca3b836d40338b9d5865a27ff7f949edc9bf86c3fa5afc69317480994",
+      "source_id": "appendix_assets.numerical_conditioning.png"
+    },
+    {
+      "bytes": 24317,
+      "path": "results/benchmark_diagnostics/figures/regime_confusion_matrices.pdf",
+      "sha256": "2d63eeb4d0cae03291abde46f434ef6fa456dd133bc6c692113fd9c2ba11cf72",
+      "source_id": "appendix_assets.confusion_matrices.pdf"
+    },
+    {
+      "bytes": 284696,
+      "path": "results/benchmark_diagnostics/figures/regime_confusion_matrices.png",
+      "sha256": "884967396d60038a394e8926b10b100e69b877abf15d7090d439d32534332902",
+      "source_id": "appendix_assets.confusion_matrices.png"
+    },
+    {
+      "bytes": 38339,
+      "path": "results/benchmark_diagnostics/figures/rolling_qlike_by_model.pdf",
+      "sha256": "ffeb0a020bb2687d1d331e621d955a856f5654278c1fcf163a3361fe9a481d85",
+      "source_id": "appendix_assets.rolling_qlike.pdf"
+    },
+    {
+      "bytes": 381279,
+      "path": "results/benchmark_diagnostics/figures/rolling_qlike_by_model.png",
+      "sha256": "d3c43a0fdf30581368a35702cc192a92cafb60321710971c9fae00bce3240da7",
+      "source_id": "appendix_assets.rolling_qlike.png"
+    },
+    {
+      "bytes": 17045,
+      "path": "results/benchmark_diagnostics/figures/transition_type_performance.pdf",
+      "sha256": "80bf88025d2cfa27ed83b03e39f857aa99ff2b8df56a5e3c2d81c1afbbdc4e4a",
+      "source_id": "appendix_assets.transition_types.pdf"
+    },
+    {
+      "bytes": 134800,
+      "path": "results/benchmark_diagnostics/figures/transition_type_performance.png",
+      "sha256": "8d92484a7cde09c37e73b24003bad82cd9fb0c8af0295ecdbba3bbd589e68cf8",
+      "source_id": "appendix_assets.transition_types.png"
+    },
+    {
+      "bytes": 21311,
+      "path": "results/benchmark_diagnostics/figures/variance_calibration_by_model.pdf",
+      "sha256": "3d0e3b7fcdf47de0411a1cc6d94e3ec3b745971d8955e9482b72379f668a3aa5",
+      "source_id": "appendix_assets.variance_calibration.pdf"
+    },
+    {
+      "bytes": 237037,
+      "path": "results/benchmark_diagnostics/figures/variance_calibration_by_model.png",
+      "sha256": "8b8d2a5317f41a145af591ef1c88e014640144db6469a74875126b56ce7f936f",
+      "source_id": "appendix_assets.variance_calibration.png"
+    },
+    {
+      "bytes": 6349,
+      "path": "results/benchmark_diagnostics/tables/qrc_seed_numerical_diagnostics.json",
+      "sha256": "03494f028beadc66f1956e51868870f80b4a24cc773f411054b98176d9a2ccc9",
+      "source_id": "sources.numerical_diagnostics"
+    },
+    {
+      "bytes": 30995,
+      "path": "results/benchmark_diagnostics/tables/variance_overall_calibration.json",
+      "sha256": "d810fb7616d5d3967d47e02dccbc82371198054045763c6461e78c0576386b5b",
+      "source_id": "sources.variance_diagnostics"
+    },
+    {
+      "bytes": 29848,
+      "path": "results/benchmark_diagnostics/tables/variance_tail_diagnostics.json",
+      "sha256": "f16d65a9fa8746b08527e8d9475acf35c87ad653a2424aed626bf5fd17da8e17",
+      "source_id": "sources.tail_diagnostics"
+    },
+    {
+      "bytes": 8255,
+      "path": "results/final_financial_qrc/final_architecture_manifest.json",
+      "sha256": "10a431b7d047f5e0b18b657815492560a717aca6588067402bf47cb64983190f",
+      "source_id": "sources.financial_architecture"
+    },
+    {
+      "bytes": 21867423,
+      "path": "results/final_financial_qrc/robustness/tables/qrc_noise_robustness_aggregate.json",
+      "sha256": "8811321e318b4ef141a3bc1990684be762f8852206349cf637fb857935f80f34",
+      "source_id": "sources.financial_robustness"
+    },
+    {
+      "bytes": 10611,
+      "path": "results/final_financial_qrc/tables/final_financial_benchmark.json",
+      "sha256": "24b597490e860713355f3a4a890d6a146be6710b3b6891a4a057d698f9c87a16",
+      "source_id": "sources.financial_benchmark"
+    },
+    {
+      "bytes": 8628,
+      "path": "results/final_financial_qrc/tables/final_qrc_exact_aggregate.json",
+      "sha256": "bc852ea054e198f488edfe8f8994acaebb47c7c9f34e437e1e823fefca5c9900",
+      "source_id": "sources.financial_qrc_aggregate"
+    },
+    {
+      "bytes": 3957,
+      "path": "results/qrc_encoding_density/tables/qrc_encoding_density_validation_candidates.json",
+      "sha256": "fdb4dca54d7baa780fc90b4396f8853a1ac42ebb501b289430918f93590d85a8",
+      "source_id": "sources.virtual_node_selection"
+    },
+    {
+      "bytes": 2693,
+      "path": "results/qrc_mnist/dataset/dataset_manifest.json",
+      "sha256": "ffbd298767e53c44ba4f4eed5282610a19b20a2441dbf4093c3112d3ae46c78c",
+      "source_id": "sources.mnist_dataset"
+    },
+    {
+      "bytes": 754,
+      "path": "results/qrc_mnist/dataset/preprocessing_manifest.json",
+      "sha256": "bdd644cd91b844635f7527aac68e5d2bb11eeca425bc88b4e598b7435696b3a0",
+      "source_id": "sources.mnist_preprocessing"
+    },
+    {
+      "bytes": 120179,
+      "path": "results/qrc_mnist/dataset/selected_indices.json",
+      "sha256": "aa47e89261895fb90731ed73db8c56e419563bf64445dc2af1ff2ed8b82a02ee",
+      "source_id": "sources.mnist_indices"
+    },
+    {
+      "bytes": 1421,
+      "path": "results/qrc_mnist/environment_manifest.json",
+      "sha256": "54481678f1b6d9c000b02bd3252b59f5281f13aa3c8fc10f9fc85357ae4e5b71",
+      "source_id": "sources.mnist_environment"
+    },
+    {
+      "bytes": 6687,
+      "path": "results/qrc_mnist/run_summary.json",
+      "sha256": "0b2b36f8a99a15d4fc5768ebaf7bbd59b152bb442e1c32228e9e17e473910ddd",
+      "source_id": "sources.mnist_summary"
+    },
+    {
+      "bytes": 2448,
+      "path": "results/qrc_mnist/tables/mnist_final_benchmark.json",
+      "sha256": "c20a1067b83e47559c0937b5f5d59d6f9153c48d322bc38095608161fc047e41",
+      "source_id": "sources.mnist_benchmark"
+    },
+    {
+      "bytes": 9078,
+      "path": "results/qrc_mnist/tables/mnist_qrc_exact_aggregate.json",
+      "sha256": "ce5d68346d54ec4758ff6a34a1bcf15c0639ef6fbff4cadd5d46ce42d368327a",
+      "source_id": "sources.mnist_qrc_aggregate"
+    },
+    {
+      "bytes": 47131,
+      "path": "results/qrc_mnist/tables/mnist_qrc_finite_shot_noise.json",
+      "sha256": "db1043e025ba19ef55805ee896e98ee6dcc756a0871a43ecdcd029c133dfaa50",
+      "source_id": "sources.mnist_robustness"
+    },
+    {
+      "bytes": 284233,
+      "path": "results/qrc_qubit_scaling/tables/qrc_qubit_scaling_aggregate.json",
+      "sha256": "71d1cba40f972a4897c86cf839562592aed16a779cf0327cec2b73e9fe524694",
+      "source_id": "sources.qubit_scaling"
+    },
+    {
+      "bytes": 1352,
+      "path": "results/qrc_qubit_scaling/tables/qrc_qubit_scaling_resources.json",
+      "sha256": "7c2ad4bb744cc415011dd5981489b72cb219aa0280acd1427ab92948141453a2",
+      "source_id": "sources.qubit_resources"
+    },
+    {
+      "bytes": 20301,
+      "path": "results/statistical_validation/figures/mincer_zarnowitz_alpha_beta.pdf",
+      "sha256": "643b5f1842540315c8627d08f654ba31d93c6ca31f0ec471be9919abaaea8739",
+      "source_id": "appendix_assets.mincer_zarnowitz.pdf"
+    },
+    {
+      "bytes": 100592,
+      "path": "results/statistical_validation/figures/mincer_zarnowitz_alpha_beta.png",
+      "sha256": "23f1b055f04abe1304758c3a07efd80ead477218e5bf8d89a6893c733898aae0",
+      "source_id": "appendix_assets.mincer_zarnowitz.png"
+    },
+    {
+      "bytes": 34483,
+      "path": "results/statistical_validation/tables/financial_classification_architecture_level.json",
+      "sha256": "16a16a8bdd226d527f4803a5e8c5dfbde1d90fdd858a9f6227345b75d0a5a1b4",
+      "source_id": "sources.financial_classification_inference"
+    },
+    {
+      "bytes": 74876,
+      "path": "results/statistical_validation/tables/financial_regression_architecture_level.json",
+      "sha256": "535a86ebb37b913420384a371a85c18d497f2cb7ba8d13f19aba73df9be31aa3",
+      "source_id": "sources.financial_regression_inference"
+    },
+    {
+      "bytes": 9910,
+      "path": "results/statistical_validation/tables/mnist_architecture_level.json",
+      "sha256": "1d94661c68b938bb9c6701d87448392a3ddde15c5bd712e38f37a4c242ba47a9",
+      "source_id": "sources.mnist_inference"
+    }
+  ],
+  "study_id": "phase3_publication_assets_v1"
+}

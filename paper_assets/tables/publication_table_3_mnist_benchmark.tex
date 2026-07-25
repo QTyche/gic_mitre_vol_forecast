@@ -1,0 +1,21 @@
+\begin{table*}[t]
+\centering
+\small
+\caption{Frozen MNIST benchmark and QRC robustness}
+\begin{tabular}{lrrrrrr}
+\toprule
+Section & Model or condition & Accuracy $\uparrow$ & Macro-F1 $\uparrow$ & Balanced acc. $\uparrow$ & Macro ROC-AUC $\uparrow$ & Inference or scope \\
+\midrule
+Model comparison & Flattened logistic & 0.889 & 0.888 & 0.889 & 0.987 & No Holm-adjusted QRC difference \\
+Model comparison & Size-controlled ESN & 0.934 & 0.934 & 0.934 & 0.995 & ESN higher than QRC on all metrics (Holm-adjusted) \\
+Model comparison & Exact QRC mean & 0.874 $\pm$ 0.005 & 0.874 $\pm$ 0.005 & 0.874 $\pm$ 0.005 & 0.987 $\pm$ 0.001 & Mean $\pm$ population SD across seeds 2026-2028 \\
+QRC robustness & Analytic (seed 2026) & 0.871 & 0.870 & 0.871 & 0.987 & Frozen seed-2026 prediction condition; no significance test \\
+QRC robustness & 2,048 shots (seed 2026) & 0.504 & 0.501 & 0.504 & 0.869 & Frozen seed-2026 prediction condition; no significance test \\
+QRC robustness & 2,048 shots + depolarising 0.01 & 0.492 & 0.488 & 0.492 & 0.860 & Frozen seed-2026 prediction condition; no significance test \\
+QRC robustness & 2,048 shots + measurement flip 0.02 & 0.485 & 0.482 & 0.485 & 0.863 & Frozen seed-2026 prediction condition; no significance test \\
+\bottomrule
+\end{tabular}
+\parbox{0.98\linewidth}{\footnotesize Exact QRC is mean $\pm$ population SD across seeds 2026-2028.}
+\parbox{0.98\linewidth}{\footnotesize QRC versus flattened logistic was not Holm-significant; ESN was significantly higher than QRC.}
+\parbox{0.98\linewidth}{\footnotesize Robustness rows use frozen seed-2026 predictions and were not significance-tested.}
+\end{table*}

@@ -1,0 +1,151 @@
+schema_version: 1
+study:
+  id: phase3_publication_assets_v1
+  project_root: ..
+  tracked_output_root: paper_assets
+  intermediate_output_root: results/publication_assets
+  frozen_source_commit: a5c9f73ddee00a483299f22a5887a3dab6a7819c
+  generation_command: python scripts/freeze_publication_assets.py
+  publication_assets_frozen: true
+  no_new_model_execution: true
+  no_test_based_selection: true
+
+sources:
+  public_data_manifest:
+    path: data/processed/public_market/data_manifest.json
+    sha256: 97c280252b0aeabc2e524d97da4c152f5a3f11429a223044600dc99a1edafd33
+  regime_thresholds:
+    path: data/processed/public_market/regime_thresholds.json
+    sha256: 8ef5126d83c709ce52b268d6f5178f078c5c3439fc769ce465fe4986782864e8
+  financial_architecture:
+    path: results/final_financial_qrc/final_architecture_manifest.json
+    sha256: 10a431b7d047f5e0b18b657815492560a717aca6588067402bf47cb64983190f
+  financial_benchmark:
+    path: results/final_financial_qrc/tables/final_financial_benchmark.json
+    sha256: 24b597490e860713355f3a4a890d6a146be6710b3b6891a4a057d698f9c87a16
+  financial_qrc_aggregate:
+    path: results/final_financial_qrc/tables/final_qrc_exact_aggregate.json
+    sha256: bc852ea054e198f488edfe8f8994acaebb47c7c9f34e437e1e823fefca5c9900
+  financial_robustness:
+    path: results/final_financial_qrc/robustness/tables/qrc_noise_robustness_aggregate.json
+    sha256: 8811321e318b4ef141a3bc1990684be762f8852206349cf637fb857935f80f34
+  financial_classification_inference:
+    path: results/statistical_validation/tables/financial_classification_architecture_level.json
+    sha256: 16a16a8bdd226d527f4803a5e8c5dfbde1d90fdd858a9f6227345b75d0a5a1b4
+  financial_regression_inference:
+    path: results/statistical_validation/tables/financial_regression_architecture_level.json
+    sha256: 535a86ebb37b913420384a371a85c18d497f2cb7ba8d13f19aba73df9be31aa3
+  mnist_inference:
+    path: results/statistical_validation/tables/mnist_architecture_level.json
+    sha256: 1d94661c68b938bb9c6701d87448392a3ddde15c5bd712e38f37a4c242ba47a9
+  qubit_scaling:
+    path: results/qrc_qubit_scaling/tables/qrc_qubit_scaling_aggregate.json
+    sha256: 71d1cba40f972a4897c86cf839562592aed16a779cf0327cec2b73e9fe524694
+  qubit_resources:
+    path: results/qrc_qubit_scaling/tables/qrc_qubit_scaling_resources.json
+    sha256: 7c2ad4bb744cc415011dd5981489b72cb219aa0280acd1427ab92948141453a2
+  virtual_node_selection:
+    path: results/qrc_encoding_density/tables/qrc_encoding_density_validation_candidates.json
+    sha256: fdb4dca54d7baa780fc90b4396f8853a1ac42ebb501b289430918f93590d85a8
+  mnist_dataset:
+    path: results/qrc_mnist/dataset/dataset_manifest.json
+    sha256: ffbd298767e53c44ba4f4eed5282610a19b20a2441dbf4093c3112d3ae46c78c
+  mnist_preprocessing:
+    path: results/qrc_mnist/dataset/preprocessing_manifest.json
+    sha256: bdd644cd91b844635f7527aac68e5d2bb11eeca425bc88b4e598b7435696b3a0
+  mnist_indices:
+    path: results/qrc_mnist/dataset/selected_indices.json
+    sha256: aa47e89261895fb90731ed73db8c56e419563bf64445dc2af1ff2ed8b82a02ee
+  mnist_summary:
+    path: results/qrc_mnist/run_summary.json
+    sha256: 0b2b36f8a99a15d4fc5768ebaf7bbd59b152bb442e1c32228e9e17e473910ddd
+  mnist_environment:
+    path: results/qrc_mnist/environment_manifest.json
+    sha256: 54481678f1b6d9c000b02bd3252b59f5281f13aa3c8fc10f9fc85357ae4e5b71
+  mnist_benchmark:
+    path: results/qrc_mnist/tables/mnist_final_benchmark.json
+    sha256: c20a1067b83e47559c0937b5f5d59d6f9153c48d322bc38095608161fc047e41
+  mnist_qrc_aggregate:
+    path: results/qrc_mnist/tables/mnist_qrc_exact_aggregate.json
+    sha256: ce5d68346d54ec4758ff6a34a1bcf15c0639ef6fbff4cadd5d46ce42d368327a
+  mnist_robustness:
+    path: results/qrc_mnist/tables/mnist_qrc_finite_shot_noise.json
+    sha256: db1043e025ba19ef55805ee896e98ee6dcc756a0871a43ecdcd029c133dfaa50
+  variance_diagnostics:
+    path: results/benchmark_diagnostics/tables/variance_overall_calibration.json
+    sha256: d810fb7616d5d3967d47e02dccbc82371198054045763c6461e78c0576386b5b
+  numerical_diagnostics:
+    path: results/benchmark_diagnostics/tables/qrc_seed_numerical_diagnostics.json
+    sha256: 03494f028beadc66f1956e51868870f80b4a24cc773f411054b98176d9a2ccc9
+  tail_diagnostics:
+    path: results/benchmark_diagnostics/tables/variance_tail_diagnostics.json
+    sha256: f16d65a9fa8746b08527e8d9475acf35c87ad653a2424aed626bf5fd17da8e17
+  benchmark_diagnostics_summary:
+    path: results/benchmark_diagnostics/benchmark_diagnostics_summary.json
+    sha256: 59cff5616816428469480f56855e09e012554d194aa514ed025db4ffb5643b7a
+
+appendix_assets:
+  variance_calibration:
+    png:
+      path: results/benchmark_diagnostics/figures/variance_calibration_by_model.png
+      sha256: 8b8d2a5317f41a145af591ef1c88e014640144db6469a74875126b56ce7f936f
+    pdf:
+      path: results/benchmark_diagnostics/figures/variance_calibration_by_model.pdf
+      sha256: 3d0e3b7fcdf47de0411a1cc6d94e3ec3b745971d8955e9482b72379f668a3aa5
+  rolling_qlike:
+    png:
+      path: results/benchmark_diagnostics/figures/rolling_qlike_by_model.png
+      sha256: d3c43a0fdf30581368a35702cc192a92cafb60321710971c9fae00bce3240da7
+    pdf:
+      path: results/benchmark_diagnostics/figures/rolling_qlike_by_model.pdf
+      sha256: ffeb0a020bb2687d1d331e621d955a856f5654278c1fcf163a3361fe9a481d85
+  mincer_zarnowitz:
+    png:
+      path: results/statistical_validation/figures/mincer_zarnowitz_alpha_beta.png
+      sha256: 23f1b055f04abe1304758c3a07efd80ead477218e5bf8d89a6893c733898aae0
+    pdf:
+      path: results/statistical_validation/figures/mincer_zarnowitz_alpha_beta.pdf
+      sha256: 643b5f1842540315c8627d08f654ba31d93c6ca31f0ec471be9919abaaea8739
+  confusion_matrices:
+    png:
+      path: results/benchmark_diagnostics/figures/regime_confusion_matrices.png
+      sha256: 884967396d60038a394e8926b10b100e69b877abf15d7090d439d32534332902
+    pdf:
+      path: results/benchmark_diagnostics/figures/regime_confusion_matrices.pdf
+      sha256: 2d63eeb4d0cae03291abde46f434ef6fa456dd133bc6c692113fd9c2ba11cf72
+  transition_types:
+    png:
+      path: results/benchmark_diagnostics/figures/transition_type_performance.png
+      sha256: 8d92484a7cde09c37e73b24003bad82cd9fb0c8af0295ecdbba3bbd589e68cf8
+    pdf:
+      path: results/benchmark_diagnostics/figures/transition_type_performance.pdf
+      sha256: 80bf88025d2cfa27ed83b03e39f857aa99ff2b8df56a5e3c2d81c1afbbdc4e4a
+  mnist_per_digit:
+    png:
+      path: results/benchmark_diagnostics/figures/mnist_per_digit_f1.png
+      sha256: f3fc4bc22aec59d309c9e4910b741834a15a6e021b702bd8bcf7079f87a0dcd7
+    pdf:
+      path: results/benchmark_diagnostics/figures/mnist_per_digit_f1.pdf
+      sha256: 6a0f2118580ee0d8a30ae1f0abaaacf9d33c043ae0a1c1f9bfd19d5c968ef806
+  numerical_conditioning:
+    png:
+      path: results/benchmark_diagnostics/figures/qrc_seed_numerical_conditioning.png
+      sha256: 795ae14ca3b836d40338b9d5865a27ff7f949edc9bf86c3fa5afc69317480994
+    pdf:
+      path: results/benchmark_diagnostics/figures/qrc_seed_numerical_conditioning.pdf
+      sha256: 7dfd858090e4d72840c2221bbbe1bb2e79f9635a768f41fdfb3aafb21ab50965
+
+formatting:
+  dpi: 300
+  significance_alpha: 0.05
+  missing_display: "—"
+  metric_precision:
+    macro_f1: 3
+    balanced_accuracy: 3
+    transition_pr_auc: 3
+    qlike: 3
+    rmse: 4
+    mae: 4
+    correlation: 3
+    accuracy: 3
+    macro_roc_auc: 3

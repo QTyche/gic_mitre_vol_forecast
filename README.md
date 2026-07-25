@@ -451,6 +451,35 @@ The workflow is classical analysis of frozen exact-simulation and labelled
 finite-shot/noise predictions. It is not physical-QPU execution and makes no
 quantum-advantage claim.
 
+## Frozen publication assets
+
+Stage 2C compiles the final five-page-paper tables, figures, claims manifest,
+and factual prose support from checksum-pinned frozen results. It does not fit
+or rerun models, change architectures or thresholds, recalibrate predictions,
+select on test results, create ensembles, or conduct new hypothesis tests.
+
+```bash
+uv run python scripts/freeze_publication_assets.py
+uv run python scripts/freeze_publication_assets.py
+```
+
+Tracked final files are under `paper_assets/`; detailed untracked compiler
+records are under `results/publication_assets/`. The package contains three
+tables in CSV/JSON/LaTeX/Markdown, four 300-DPI PNG/PDF main figures, seven
+preserved appendix figure pairs, a checksum-complete asset manifest, a
+fact-by-fact results and claims manifest, figure captions, an estimated page
+footprint, and results, limitations and reproducibility factsheets.
+
+Every reported value identifies its frozen source, locator, checksum, split,
+scope, adjustment status and metric direction. Regeneration is deterministic,
+and tracked assets contain only repository-relative paths. See
+`docs/publication_assets.md` for the exact selection, output contract,
+interpretation limits, and validation commands.
+
+These assets report classical exact density-matrix and explicitly labelled
+finite-shot/noise simulations of a quantum reservoir. No physical QPU was
+executed and no quantum-advantage claim is made.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training
