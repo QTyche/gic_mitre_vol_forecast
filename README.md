@@ -226,6 +226,38 @@ device models. State evolution and channel application use classical
 density-matrix computation; no physical QPU is used and no quantum-advantage
 claim is supported. See `docs/qrc_noise_robustness.md`.
 
+### QRC temporal-multiplexing and encoding-density study
+
+For the fixed two-qubit candidate, this controlled study varies only the
+implemented within-input virtual-node density, `V=1,2,4,8`, over reservoir
+seeds 2026, 2027, and 2028. The total evolution interval remains `tau=1.0` for
+every market input; each condition uses `V` equal substeps of duration
+`tau/V`. Run the compact smoke grid or complete study with:
+
+```bash
+python scripts/run_qrc_encoding_density.py \
+  --virtual-nodes 1 2 8 \
+  --seeds 2026 \
+  --smoke
+
+python scripts/run_qrc_encoding_density.py \
+  --virtual-nodes 1 2 4 8 \
+  --seeds 2026 2027 2028
+```
+
+Outputs under `results/qrc_encoding_density/` include split-level and
+seed-aggregated JSON/CSV tables, a validation-only candidate table, resource
+and training-feature conditioning diagnostics, nine PNG/PDF figures, and an
+array-level comparison of `V=2` with the existing exact two-qubit reference
+when its cache is available. Runs are resume-safe, use an isolated cache,
+verify frozen public-data checksums, reject synthetic data, and share each
+feature cache between both readouts.
+
+The candidate table does not freeze an architecture because the state-memory
+ablation remains outstanding. This is exact classical density-matrix
+simulation of a quantum reservoir—not physical-QPU execution or evidence of
+quantum advantage. See `docs/qrc_encoding_density.md`.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training

@@ -60,6 +60,14 @@ slice. Connected correlations
 `<Z_i Z_j> - <Z_i><Z_j>` are numerical diagnostics only and are excluded from
 the fitted readout.
 
+The total interval for one input is fixed at `tau`, not `V tau`. Slice
+endpoints are `tau/V, 2 tau/V, ..., tau`. Under the implemented encoding
+semantics, every slice applies its own fixed-seed projection row and partial
+input-qubit reset/reinjection before evolving for `tau/V`; the final state is
+then carried to the next input under `carry_inputs`. Thus changing `V` changes
+within-interval encoding and readout density while preserving the total
+evolution duration.
+
 ## Readouts
 
 The classification head fits intercept-unpenalized ridge regression against
