@@ -8,9 +8,11 @@ For interaction graph `E`,
 H = sum_(i,j in E) J_ij Z_i Z_j + sum_i h_i X_i.
 ```
 
-The primary graph is the ordered ring
-`(0,1), (1,2), ..., (N-2,N-1), (N-1,0)`. The interface also accepts an
-explicit `ring_plus_chords` graph. Once per reservoir seed,
+For `N >= 3`, the primary graph is the ordered ring
+`(0,1), (1,2), ..., (N-2,N-1), (N-1,0)`. At `N = 2`, the ring has the single
+unique undirected edge `(0,1)` rather than duplicating the same interaction in
+opposite directions. The interface also accepts an explicit
+`ring_plus_chords` graph. Once per reservoir seed,
 
 ```text
 J_ij ~ J_strength Uniform(-1, 1)
@@ -52,7 +54,9 @@ z_t = concat_v [<Z_0>, ..., <Z_(N-1)>, <Z_i Z_j>_(i,j in E)]
 raw dimension = V (N + |E|).
 ```
 
-For a ring this is `2 V N`. Connected correlations
+For rings with `N >= 3`, this is `2 V N`. For the two-qubit ring it is
+`3 V`, because there are two single-qubit and one unique edge observable per
+slice. Connected correlations
 `<Z_i Z_j> - <Z_i><Z_j>` are numerical diagnostics only and are excluded from
 the fitted readout.
 

@@ -24,6 +24,7 @@ def test_pauli_operators_have_correct_dimensions_and_are_hermitian() -> None:
 
 
 def test_ring_graph_contains_expected_edges() -> None:
+    assert ring_edges(2) == ((0, 1),)
     assert ring_edges(4) == ((0, 1), (1, 2), (2, 3), (3, 0))
 
 
@@ -114,7 +115,9 @@ def test_observable_feature_ordering_is_deterministic() -> None:
 
 
 def test_qrc_feature_dimension_matches_virtual_nodes_times_nodes_and_edges() -> None:
+    two_qubit = ObservableSet.build(2, ring_edges(2), 2)
     observables = ObservableSet.build(4, ring_edges(4), 2)
+    assert two_qubit.raw_feature_dimension == 2 * (2 + 1) == 6
     assert observables.raw_feature_dimension == 2 * (4 + 4) == 16
 
 

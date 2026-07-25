@@ -33,8 +33,10 @@ def pauli_operators() -> dict[str, ComplexMatrix]:
 def ring_edges(n_qubits: int) -> tuple[Edge, ...]:
     """Return the deterministic undirected nearest-neighbour ring ordering."""
 
-    if n_qubits < 3:
-        raise ValueError("a ring QRC requires at least three qubits")
+    if n_qubits < 2:
+        raise ValueError("a ring QRC requires at least two qubits")
+    if n_qubits == 2:
+        return ((0, 1),)
     return tuple((index, (index + 1) % n_qubits) for index in range(n_qubits))
 
 

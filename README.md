@@ -176,6 +176,32 @@ no shots, hardware, physical noise, or feedback. See
 correctness and stability evidence only; it makes no ESN-superiority or quantum
 advantage claim.
 
+### Exact QRC qubit-scaling study
+
+The controlled scaling study changes only the reservoir qubit count while
+holding the public snapshot, temporal splits, two virtual nodes, reservoir
+dynamics, observables, readout selection, targets, and seed grid fixed. Run its
+small resume-safe smoke grid or the complete 2–6-qubit, three-seed grid with:
+
+```bash
+python scripts/run_qrc_qubit_scaling.py \
+  --qubits 2 4 6 \
+  --seeds 2026 \
+  --smoke
+
+python scripts/run_qrc_qubit_scaling.py \
+  --qubits 2 3 4 5 6 \
+  --seeds 2026 2027 2028
+```
+
+Outputs are written under `results/qrc_qubit_scaling/`. They include per-run
+and seed-aggregated JSON/CSV tables, analytical resource estimates, PNG/PDF
+figures, run manifests, and a top-level resume summary. The runner verifies the
+frozen public-data checksums and rejects synthetic fixture data before any model
+is run. This is exact classical density-matrix simulation of a quantum
+reservoir, not physical-QPU execution or evidence of quantum advantage. See
+`docs/qrc_qubit_scaling.md` for the output contract and interpretation guidance.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training

@@ -45,8 +45,8 @@ class QRCConfig:
     chords: tuple[Edge, ...] = ()
 
     def validate(self) -> None:
-        if self.n_qubits < 3 or self.n_qubits > 6:
-            raise ValueError("exact ring QRC requires 3 <= n_qubits <= 6")
+        if self.n_qubits < 2 or self.n_qubits > 6:
+            raise ValueError("exact ring QRC requires 2 <= n_qubits <= 6")
         if self.graph not in {"ring", "ring_plus_chords"}:
             raise ValueError("graph must be ring or ring_plus_chords")
         if self.virtual_nodes <= 0:
