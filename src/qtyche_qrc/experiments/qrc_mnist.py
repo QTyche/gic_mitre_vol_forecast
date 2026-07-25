@@ -10,7 +10,7 @@ import warnings
 from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Union, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -68,7 +68,7 @@ ROBUSTNESS_CONDITIONS = (
     "depolarizing_0_01",
     "measurement_flip_0_02",
 )
-QRCFeatureReservoir = QuantumReservoir | RobustQuantumReservoir
+QRCFeatureReservoir = Union[QuantumReservoir, RobustQuantumReservoir]
 
 
 def _manifest_path(path: Path, project_root: Path) -> str:

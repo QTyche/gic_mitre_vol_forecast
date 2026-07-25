@@ -1,0 +1,110 @@
+schema_version: 1
+study:
+  id: formal_benchmark_statistical_validation_v1
+  project_root: ..
+  output_root: results/statistical_validation
+  financial_prediction_count: 497
+  mnist_prediction_count: 1000
+  financial_architecture_manifest:
+    path: results/final_financial_qrc/final_architecture_manifest.json
+    sha256: 10a431b7d047f5e0b18b657815492560a717aca6588067402bf47cb64983190f
+  mnist_subset_checksum: 06c1ee9c6db87efc13ebaacc7f4406297d061d10d573731434c3f957e7c0574e
+inference:
+  confidence_level: 0.95
+  hac:
+    primary_lag: 4
+    sensitivity_lags: [0, 10, 20]
+    forecast_horizon: 5
+    apply_harvey_leybourne_newbold: true
+  bootstrap:
+    repetitions: 10000
+    smoke_repetitions: 200
+    seed: 2026
+    primary_block_length: 10
+    sensitivity_block_lengths: [5, 20]
+financial:
+  qrc:
+    2026:
+      classifier:
+        path: results/final_financial_qrc/exact/runs/20260725T165946.513882Z_qrc_classifier_regime_classification_seed2026/test_predictions.csv
+        sha256: 48ce272c18492eb91d38a18c311d89d5e4f819ed86a4b0af62670e442caa1cd3
+      regressor:
+        path: results/final_financial_qrc/exact/runs/20260725T165947.075610Z_qrc_regressor_rv_regression_seed2026/test_predictions.csv
+        sha256: 11f856d493171d2eaa4422ff66e953f48eb5727e13180508fc79cb4e98e7c82d
+    2027:
+      classifier:
+        path: results/final_financial_qrc/exact/runs/20260725T170425.951468Z_qrc_classifier_regime_classification_seed2027/test_predictions.csv
+        sha256: 11c06f12e1b0089b883d37af06bf49b8290abb1df75d08c396ade0eee03c4090
+      regressor:
+        path: results/final_financial_qrc/exact/runs/20260725T170426.209148Z_qrc_regressor_rv_regression_seed2027/test_predictions.csv
+        sha256: edc0df26843c3179d40c17c625c6e19c3f8c8600bd12c251e81933281265e8d6
+    2028:
+      classifier:
+        path: results/final_financial_qrc/exact/runs/20260725T170426.757236Z_qrc_classifier_regime_classification_seed2028/test_predictions.csv
+        sha256: 6fa2143f9850e8ba257818fd34d0023f440fad370b96b972784aaf48fbec5890
+      regressor:
+        path: results/final_financial_qrc/exact/runs/20260725T170426.990460Z_qrc_regressor_rv_regression_seed2028/test_predictions.csv
+        sha256: 4b3a2662b6d554adf6b0110b5ae36b0063b4a82513635d0c577b4c44f0795da2
+  classification_baselines:
+    logistic_regression:
+      display_name: Logistic regression
+      informative: true
+      path: results/public_market/20260721T160850.786541Z_logistic_regression_regime_classification_seed2026/test_predictions.csv
+      sha256: 7e22dad8be4e9c549fae7af1616af08181bfb188f3ffdb7389c1312a44faa23a
+    esn_classifier:
+      display_name: ESN classifier
+      informative: true
+      path: results/public_market/20260721T160852.942036Z_esn_classifier_regime_classification_seed2026/test_predictions.csv
+      sha256: 1cffc0aaf65e1b0493edb519afdc7c7b7405c629e0bd16b01ec0f42994970471
+    regime_persistence:
+      display_name: Regime persistence
+      informative: true
+      path: results/public_market/20260721T160848.696340Z_regime_persistence_regime_classification_seed2026/test_predictions.csv
+      sha256: 9517e4807286fc16727253610371bf2908c06b46344741c80060a718144e5e16
+    majority_classifier:
+      display_name: Majority classifier
+      informative: true
+      path: results/public_market/20260721T160846.586976Z_majority_classifier_regime_classification_seed2026/test_predictions.csv
+      sha256: d3aa5d9bbdbcfcb324c881507e941891a1cc7caa7ebc9e5e6365a75bfc4390f2
+  regression_baselines:
+    garch_1_1:
+      display_name: GARCH(1,1)
+      primary: true
+      path: results/garch_baseline/runs/20260725T163422.674310Z_gaussian_garch_1_1_full/test_predictions.csv
+      sha256: ad823829f7ce6a11bac94e876aa57988cea722d61497760f80dcd6b82c4c5ff4
+    esn_regressor:
+      display_name: ESN regressor
+      primary: true
+      path: results/public_market/20260721T160858.919809Z_esn_regressor_rv_regression_seed2026/test_predictions.csv
+      sha256: a7262515fea8773729570ab224c074e4f50183781574c40886677f869fb335f7
+    rv_persistence:
+      display_name: Realised-variance persistence
+      primary: true
+      path: results/public_market/20260721T160855.499954Z_rv_persistence_rv_regression_seed2026/test_predictions.csv
+      sha256: a514d2574d9a7f113f862492d783734c627a4b3692d8acc37e15f5d18b491468
+    esn_log_variance_diagnostic:
+      display_name: ESN log-variance diagnostic
+      primary: false
+      inclusion_reason: Existing directly comparable frozen variance forecast
+      path: results/diagnostics/esn_regression/test_predictions.csv
+      sha256: f8b80cfab293b28a3934c4d1f073eba84d1aa72eb1bf9e6687bcd91e85e77b22
+mnist:
+  baselines:
+    flattened_logistic:
+      display_name: Flattened logistic
+      path: results/qrc_mnist/runs/full/logistic_baseline_flattened_28_by_5_8e509d4259ef7bfc/test_predictions.csv
+      sha256: 8c1ca0b58d32f64ad94c8fc42c0c460c09101d5bad27efcdf6b9f89b9a1a219a
+    esn:
+      display_name: ESN
+      path: results/qrc_mnist/runs/full/esn_baseline_size_controlled_32_3e0380ad3bceef0e/test_predictions.csv
+      sha256: be799ea56dc7217e492e00d76981d952028ef55bce77190b07c68cf8c1d8632e
+  qrc:
+    2026:
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_73e0847be1eb1096/test_predictions.csv
+      sha256: 42520c7540bcc4501593df9e00ad9d016c874b38918955cf9964f2ab9c362464
+    2027:
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_250ff5bd6051784e/test_predictions.csv
+      sha256: 36158bd5ab8cfe80820d476d7e197121baf091007b7e4504ed41500553b902f4
+    2028:
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_a3c0c75e0d945f83/test_predictions.csv
+      sha256: 44e6369e7c356c1f9a5dd93d138d4f964047a6b5a3fda63fbeced81c15c61890

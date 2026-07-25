@@ -7,6 +7,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 import pytest
+from numpy.typing import NDArray
 
 from qtyche_qrc.data.download import sha256_file
 from qtyche_qrc.evaluation.metrics import regression_metrics
@@ -28,7 +29,7 @@ def _root() -> Path:
 
 
 @pytest.fixture(scope="module")
-def fitted_models() -> tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray]:
+def fitted_models() -> tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]]:
     rng = np.random.default_rng(918)
     innovations = rng.normal(size=500)
     returns = np.empty_like(innovations)
@@ -65,7 +66,7 @@ def public_smoke_run(
 
 
 def test_parameter_constraints_and_lowest_converged_start(
-    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray],
+    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]],
 ) -> None:
     model, _, _ = fitted_models
     fit = model.fit_result
@@ -85,7 +86,7 @@ def test_parameter_constraints_and_lowest_converged_start(
 
 
 def test_estimation_is_deterministic(
-    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray],
+    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]],
 ) -> None:
     first, second, _ = fitted_models
 
@@ -95,7 +96,11 @@ def test_estimation_is_deterministic(
 def test_all_unconverged_starts_fail_clearly(monkeypatch: pytest.MonkeyPatch) -> None:
     returns = np.linspace(-0.01, 0.01, 100)
 
-    def failed_minimize(_function: Any, initial: np.ndarray, **_kwargs: Any) -> Any:
+    def failed_minimize(
+        _function: Any,
+        initial: NDArray[np.float64],
+        **_kwargs: Any,
+    ) -> Any:
         return SimpleNamespace(
             x=initial,
             fun=1.0,
@@ -116,7 +121,7 @@ def test_all_unconverged_starts_fail_clearly(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_recursive_one_step_update_is_exact(
-    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray],
+    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]],
 ) -> None:
     model, _, _ = fitted_models
     parameters = model.parameters
@@ -136,7 +141,7 @@ def test_recursive_one_step_update_is_exact(
 
 
 def test_five_step_cumulative_forecast_and_target_units_are_exact(
-    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray],
+    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]],
 ) -> None:
     model, _, _ = fitted_models
     parameters = model.parameters
@@ -155,7 +160,7 @@ def test_five_step_cumulative_forecast_and_target_units_are_exact(
 
 
 def test_forecasts_do_not_depend_on_future_returns(
-    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, np.ndarray],
+    fitted_models: tuple[GaussianGARCH11, GaussianGARCH11, NDArray[np.float64]],
 ) -> None:
     model, _, returns = fitted_models
     post_returns = returns[:30].copy()

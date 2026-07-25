@@ -392,6 +392,37 @@ reservoir plus explicitly labelled finite-shot/noise simulations. It does not
 execute on a physical QPU and provides no evidence or claim of quantum
 advantage.
 
+## Formal benchmark statistical validation
+
+Stage 2A performs paired inference on the frozen financial and MNIST
+predictions without refitting, retuning, test-set selection, forecast
+ensembling, or changes to any earlier result tree:
+
+```bash
+python scripts/run_statistical_validation.py --smoke
+python scripts/run_statistical_validation.py --smoke
+python scripts/run_statistical_validation.py
+```
+
+The financial analysis reports per-seed and architecture-level QLIKE,
+squared-error, absolute-error, macro-F1, balanced-accuracy, and transition
+PR-AUC differences. It uses lag-4 HAC/DM-style inference with lag 0/10/20
+sensitivity, deterministic circular-block intervals with block lengths
+5/10/20, Holm correction, and Mincer–Zarnowitz diagnostics. The MNIST analysis
+uses exact McNemar tests and paired class-stratified bootstrap intervals for
+accuracy, macro-F1, balanced accuracy, and macro ROC-AUC.
+
+Outputs under `results/statistical_validation/` include eight CSV/JSON table
+pairs, seven publication-ready PNG/PDF figure pairs, a summary, and a
+checksum-complete environment/provenance manifest. Every frozen input is
+SHA-256 verified before and after inference. See
+`docs/statistical_validation.md` for the comparison families, sign
+conventions, output contract, and interpretation limits.
+
+This is classical statistical analysis of predictions produced by exact
+classical density-matrix simulation of a quantum reservoir. It is not physical
+QPU execution and makes no quantum-advantage claim.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training

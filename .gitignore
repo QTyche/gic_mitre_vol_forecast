@@ -32,6 +32,7 @@ results/garch_baseline/
 results/qrc_*/
 results/final_financial_qrc/
 results/qbraid/
+results/statistical_validation/
 paper/*.aux
 paper/*.bbl
 paper/*.blg
