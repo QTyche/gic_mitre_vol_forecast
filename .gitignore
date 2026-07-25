@@ -30,6 +30,7 @@ results/data_audit/
 results/diagnostics/
 results/garch_baseline/
 results/qrc_*/
+results/final_financial_qrc/
 results/qbraid/
 paper/*.aux
 paper/*.bbl

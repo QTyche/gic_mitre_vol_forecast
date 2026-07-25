@@ -289,6 +289,39 @@ QLIKE and RMSE are lower-is-better metrics; their paired tables make the sign
 interpretation explicit. Test results do not influence the state-policy
 choice. See `docs/qrc_state_memory_ablation.md`.
 
+### Frozen final financial QRC
+
+Stage 1D freezes the validation-selected financial architecture at two qubits,
+`V=2`, and `reset_each_input`, while preserving partial input-qubit
+reinjection, `tau=1.0`, the ring Hamiltonian, analytic `Z_i` and unique
+`Z_i Z_j` observables, the frozen public data/splits, and validation-only ridge
+selection. No further architecture tuning using test results is permitted.
+
+```bash
+python scripts/run_final_financial_qrc.py --smoke
+python scripts/run_final_financial_qrc.py --smoke
+python scripts/run_final_financial_qrc.py
+```
+
+The first command runs one exact reservoir seed and the compact robustness
+grid; the repeated smoke verifies deterministic table checksums and resumable
+execution. The full command runs all three reservoir seeds and the complete
+finite-shot, depolarising-noise, and measurement-noise grids.
+
+Outputs under `results/final_financial_qrc/` include the architecture manifest,
+validation-selection evidence, exact seed-level and aggregate tables, an
+isolated reset-policy robustness study, the final classical benchmark table,
+and six publication-ready PNG/PDF figure pairs. The previous carry-input
+robustness and every earlier experiment tree remain unchanged.
+
+The seed-2027 reset feature matrix is near singular (condition number about
+`5.77e12`), so the final report records coefficient and prediction finiteness
+without changing the frozen architecture or ridge grid. GARCH transition
+PR-AUC remains not applicable, and no formal significance testing is performed
+in Stage 1D. This is exact classical simulation of a quantum reservoir, not
+physical-QPU execution or a quantum-advantage claim. See
+`docs/final_financial_qrc.md`.
+
 ## Gaussian GARCH(1,1) volatility baseline
 
 The classical volatility workstream fits a stationary Gaussian GARCH(1,1) to

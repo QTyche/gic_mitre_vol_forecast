@@ -1,0 +1,61 @@
+schema_version: 1
+study:
+  id: final_financial_qrc_v1
+  project_root: ..
+  output_root: results/final_financial_qrc
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  data_config: configs/data_public_market.yaml
+  data_config_sha256: 07281e4a7c2195f4d7f764cacd83721c36ee254491e9858c09bbcad742e88289
+  classifier_config: configs/models/final_financial_qrc_classifier.yaml
+  classifier_config_sha256: 61612bc9a15374f30a89dc4b1ad40c272e1d7ea0e2305d3ef3e4d2932678862f
+  regressor_config: configs/models/final_financial_qrc_regressor.yaml
+  regressor_config_sha256: 13a1453e8fa3aa4d86a31954086ada1285f9e16a772022f0b01683147537cad0
+  robustness_config: configs/final_financial_qrc_robustness.yaml
+  robustness_config_sha256: ed20044c10f97c186dc825630efb99a12ef5e0ffb7acc7d6fb2615ed302c9b1a
+  reservoir_seeds: [2026, 2027, 2028]
+  smoke_seeds: [2026]
+architecture:
+  n_qubits: 2
+  virtual_nodes: 2
+  state_policy: reset_each_input
+  tau: 1.0
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  input_scaling: 0.5
+  backend: numpy_density_matrix_exact
+  exact_noiseless: true
+  input_reinjection: partial_input_qubit_reinjection
+  observables:
+    single_qubit: analytic_Z_i
+    two_qubit: analytic_unique_Z_i_Z_j
+  raw_feature_dimension: 6
+readout:
+  classifier_selection_metric: macro_f1
+  regressor_selection_metric: qlike
+  ridge_alpha_grid: [1.0e-5, 1.0e-3, 1.0e-1, 1.0]
+  preprocessing_fit_split: train
+  selection_split: validation
+  test_evaluated_after_freeze: true
+selection_evidence:
+  qubit_scaling:
+    path: results/qrc_qubit_scaling/tables/qrc_qubit_scaling_aggregate.json
+    sha256: 71d1cba40f972a4897c86cf839562592aed16a779cf0327cec2b73e9fe524694
+    selected_n_qubits: 2
+  encoding_density:
+    path: results/qrc_encoding_density/tables/qrc_encoding_density_validation_candidates.json
+    sha256: fdb4dca54d7baa780fc90b4396f8853a1ac42ebb501b289430918f93590d85a8
+    selected_virtual_nodes: 2
+  state_memory:
+    path: results/qrc_state_memory_ablation/state_memory_run_summary.json
+    sha256: 21e70d85f586af6bce9eb615ab2d9b36001654887c18c278bfe2d7b0375a6fc8
+    selected_state_policy: reset_each_input
+  reset_reference:
+    path: results/qrc_state_memory_ablation/tables/qrc_state_memory_per_run.json
+    sha256: 553e6ddf7f0d72c4e6a44230689028d9fb217e04a40bbb5c9d14b4363c8aac6d
+freeze:
+  architecture_frozen: true
+  no_further_test_tuning: true
+  selection_data: validation only
+  test_metrics_inspected_after_validation_decisions: true
+  test_metrics_used_for_selection: false

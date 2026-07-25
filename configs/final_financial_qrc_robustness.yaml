@@ -1,0 +1,37 @@
+schema_version: 1
+study:
+  id: final_financial_qrc_robustness_v1
+  project_root: ..
+  output_root: results/final_financial_qrc/robustness
+  classifier_reference: configs/models/final_financial_qrc_classifier.yaml
+  classifier_reference_sha256: 61612bc9a15374f30a89dc4b1ad40c272e1d7ea0e2305d3ef3e4d2932678862f
+  regressor_reference: configs/models/final_financial_qrc_regressor.yaml
+  regressor_reference_sha256: 13a1453e8fa3aa4d86a31954086ada1285f9e16a772022f0b01683147537cad0
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  selected_n_qubits: 2
+  reservoir_seeds: [2026, 2027, 2028]
+  measurement_seeds: [0, 1, 2]
+studies:
+  finite_shot:
+    shots: [128, 512, 2048, 8192]
+  depolarizing_noise:
+    shots: 2048
+    probabilities: [0.0, 0.0001, 0.001, 0.01]
+  measurement_noise:
+    shots: 2048
+    probabilities: [0.0, 0.005, 0.01, 0.02]
+smoke:
+  reservoir_seeds: [2026]
+  measurement_seeds: [0, 1]
+  finite_shot_shots: [128, 2048]
+  depolarizing_probabilities: [0.0, 0.01]
+  measurement_noise_probabilities: [0.0, 0.02]
+fixed_qrc:
+  virtual_nodes: 2
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  tau: 1.0
+  input_scaling: 0.5
+  state_policy: reset_each_input
+  backend: numpy_density_matrix_exact

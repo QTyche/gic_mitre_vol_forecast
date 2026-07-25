@@ -49,6 +49,7 @@ from qtyche_qrc.models.qrc.robust_features import (
 from qtyche_qrc.runtime import runtime_metadata
 
 STUDY_ID = "qrc_shot_noise_robustness_v1"
+FINAL_STUDY_ID = "final_financial_qrc_robustness_v1"
 STUDY_TYPES = (
     "analytic_reference",
     "finite_shot",
@@ -237,8 +238,8 @@ def _float_tuple(mapping: dict[str, Any], key: str, location: str) -> tuple[floa
 
 
 def _validate_grids(config: RobustnessStudyConfig) -> None:
-    if config.study_id != STUDY_ID:
-        raise ValueError(f"robustness study ID must remain {STUDY_ID}")
+    if config.study_id not in {STUDY_ID, FINAL_STUDY_ID}:
+        raise ValueError(f"robustness study ID must be {STUDY_ID} or {FINAL_STUDY_ID}")
     if not 2 <= config.selected_n_qubits <= 6:
         raise ValueError("selected_n_qubits must lie in [2, 6]")
     if config.reservoir_seeds != (2026, 2027, 2028):
@@ -251,6 +252,9 @@ def _validate_grids(config: RobustnessStudyConfig) -> None:
         raise ValueError("depolarizing probability grid changed")
     if config.measurement_noise_probabilities != (0.0, 0.005, 0.01, 0.02):
         raise ValueError("measurement-noise probability grid changed")
+    expected_policy = "reset_each_input" if config.study_id == FINAL_STUDY_ID else "carry_inputs"
+    if config.fixed_qrc.get("state_policy") != expected_policy:
+        raise ValueError(f"{config.study_id} must use state_policy={expected_policy}")
     for collection in (
         config.depolarizing_probabilities,
         config.measurement_noise_probabilities,

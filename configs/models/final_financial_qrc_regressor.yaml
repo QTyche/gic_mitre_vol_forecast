@@ -1,0 +1,42 @@
+schema_version: 1
+experiment:
+  name: final_financial_qrc_regressor
+  project_root: ../..
+  seed: 2026
+  output_root: results/final_financial_qrc/exact/runs
+data:
+  processed_dir: data/processed/public_market
+  manifest: data/processed/public_market/data_manifest.json
+model:
+  type: qrc_regressor
+  task: rv_regression
+  parameters:
+    n_qubits: 2
+    graph: ring
+    virtual_nodes: 2
+    j_strength: 1.0
+    h_strength: 1.0
+    tau: 1.0
+    input_scaling: 0.5
+    ridge_alpha: 0.1
+    transform_epsilon: 1.0e-12
+    state_policy: reset_each_input
+    reservoir_seed: 2026
+    backend: numpy_density_matrix_exact
+search:
+  enabled: true
+  selection_metric: qlike
+  maximum_trials: 4
+  space:
+    ridge_alpha: [1.0e-5, 1.0e-3, 1.0e-1, 1.0]
+qrc:
+  feature_cache: results/final_financial_qrc/exact/feature_cache
+  reservoir_seeds: [2026, 2027, 2028]
+evaluation:
+  transition_threshold: 0.5
+  variance_floor: 1.0e-12
+final_architecture:
+  id: final_financial_qrc_v1
+  architecture_frozen: true
+  no_further_test_tuning: true
+  selection_data: validation only
