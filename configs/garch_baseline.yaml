@@ -1,0 +1,24 @@
+schema_version: 1
+study:
+  id: gaussian_garch11_public_v1
+  project_root: ..
+  output_root: results/garch_baseline
+  data_config: configs/data_public_market.yaml
+  data_config_sha256: 07281e4a7c2195f4d7f764cacd83721c36ee254491e9858c09bbcad742e88289
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  processed_manifest_sha256: 97c280252b0aeabc2e524d97da4c152f5a3f11429a223044600dc99a1edafd33
+  qrc_selection_summary: results/qrc_state_memory_ablation/state_memory_run_summary.json
+  qrc_selection_summary_sha256: 21e70d85f586af6bce9eb615ab2d9b36001654887c18c278bfe2d7b0375a6fc8
+  public_baseline_results: results/public_market
+model:
+  horizon: 5
+  annualization: 252.0
+  stationarity_margin: 1.0e-6
+  parameter_variance_floor: 1.0e-12
+  evaluation_variance_floor: 1.0e-12
+  maximum_iterations: 2000
+  optimiser_tolerance: 1.0e-10
+  maximum_starts: 8
+smoke:
+  training_return_count: 750
+  maximum_starts: 3

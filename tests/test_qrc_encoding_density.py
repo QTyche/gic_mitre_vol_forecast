@@ -313,7 +313,7 @@ def test_v2_reference_cache_comparison_is_array_level(tmp_path: Path) -> None:
     encoding = tmp_path / "results/qrc_encoding_density/feature_cache" / checksum
     reference.mkdir(parents=True)
     encoding.mkdir(parents=True)
-    arrays = {
+    arrays: dict[str, Any] = {
         "train": np.arange(12, dtype=float).reshape(2, 6),
         "validation": np.arange(6, dtype=float).reshape(1, 6),
         "test": np.ones((1, 6), dtype=float),

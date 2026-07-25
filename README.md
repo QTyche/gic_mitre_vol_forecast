@@ -289,6 +289,35 @@ QLIKE and RMSE are lower-is-better metrics; their paired tables make the sign
 interpretation explicit. Test results do not influence the state-policy
 choice. See `docs/qrc_state_memory_ablation.md`.
 
+## Gaussian GARCH(1,1) volatility baseline
+
+The classical volatility workstream fits a stationary Gaussian GARCH(1,1) to
+training-period SPY returns only, freezes its parameters, and causally filters
+validation/test returns observed at each forecast origin. Its five-day expected
+cumulative variance is converted to the exact annualized units and dates of the
+frozen `target_rv_5d` benchmark.
+
+```bash
+python scripts/run_garch_baseline.py --smoke
+python scripts/run_garch_baseline.py
+```
+
+Use `--no-resume` to force a new deterministic fit. Results under
+`results/garch_baseline/` include fitted parameters and all optimizer attempts,
+aligned validation/test predictions and metrics, a continuous conditional
+variance path, comparison CSV/JSON files for persistence, ESN, GARCH, and the
+validation-selected final QRC, provenance manifests, and five publication-ready
+PNG/PDF figure pairs.
+
+The runner verifies frozen raw and processed checksums, rejects synthetic data,
+fits no parameter outside the training period, and records the numerical floor
+used only for QLIKE evaluation. Deterministic regime labels use the frozen
+training thresholds; transition PR-AUC is marked not applicable because GARCH
+does not produce calibrated class probabilities here. This is a classical
+econometric baseline, and the QRC comparator is exact classical simulation—not
+physical-QPU execution or evidence of quantum advantage. See
+`docs/garch_baseline.md`.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training

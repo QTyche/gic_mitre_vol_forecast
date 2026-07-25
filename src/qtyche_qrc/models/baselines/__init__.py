@@ -6,6 +6,13 @@ from qtyche_qrc.models.baselines.esn import (
     ESNRegressor,
     ESNReservoir,
 )
+from qtyche_qrc.models.baselines.garch import (
+    GARCHFitResult,
+    GARCHForecastPath,
+    GARCHOptimizationAttempt,
+    GARCHParameters,
+    GaussianGARCH11,
+)
 from qtyche_qrc.models.baselines.logistic import MultinomialLogisticClassifier
 from qtyche_qrc.models.baselines.persistence import (
     CurrentRegimePersistenceClassifier,
@@ -19,6 +26,11 @@ __all__ = [
     "ESNConfig",
     "ESNRegressor",
     "ESNReservoir",
+    "GARCHFitResult",
+    "GARCHForecastPath",
+    "GARCHOptimizationAttempt",
+    "GARCHParameters",
+    "GaussianGARCH11",
     "MajorityClassClassifier",
     "MultinomialLogisticClassifier",
     "RealizedVariancePersistenceRegressor",

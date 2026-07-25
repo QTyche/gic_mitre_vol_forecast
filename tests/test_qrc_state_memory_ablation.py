@@ -360,7 +360,7 @@ def test_carry_reference_cache_comparison_is_array_level(tmp_path: Path) -> None
     memory = tmp_path / "results/qrc_state_memory_ablation/feature_cache" / checksum
     reference.mkdir(parents=True)
     memory.mkdir(parents=True)
-    arrays = {
+    arrays: dict[str, Any] = {
         "train": np.arange(12, dtype=float).reshape(2, 6),
         "validation": np.arange(6, dtype=float).reshape(1, 6),
         "test": np.ones((1, 6), dtype=float),
