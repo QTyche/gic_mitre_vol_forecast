@@ -208,6 +208,7 @@ class RobustQuantumReservoir:
         inputs: NDArray[np.float64],
         *,
         reset: bool = False,
+        reset_each_input: bool = False,
     ) -> NDArray[np.float64]:
         """Generate chronological features without consuming labels."""
 
@@ -220,6 +221,8 @@ class RobustQuantumReservoir:
             self.reset_state()
         output = np.empty((len(values), self.observables.raw_feature_dimension), dtype=float)
         for index, row in enumerate(values):
+            if reset_each_input:
+                self.reset_state()
             output[index] = self.step(row)
         return output
 
@@ -296,8 +299,12 @@ def split_robust_qrc_features(
         train = reservoir.transform(X_train, reset=True)
         validation = reservoir.transform(X_validation, reset=True)
         test = reservoir.transform(X_test, reset=True)
+    elif state_policy == "reset_each_input":
+        train = reservoir.transform(X_train, reset_each_input=True)
+        validation = reservoir.transform(X_validation, reset_each_input=True)
+        test = reservoir.transform(X_test, reset_each_input=True)
     else:
-        raise ValueError("state_policy must be reset or carry_inputs")
+        raise ValueError("state_policy must be reset, carry_inputs, or reset_each_input")
     return train, validation, test
 
 

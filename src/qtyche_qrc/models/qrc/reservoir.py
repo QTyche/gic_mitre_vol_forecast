@@ -55,8 +55,8 @@ class QRCConfig:
             raise ValueError("QRC strengths and tau are invalid")
         if self.input_scaling <= 0:
             raise ValueError("input_scaling must be positive")
-        if self.state_policy not in {"reset", "carry_inputs"}:
-            raise ValueError("state_policy must be reset or carry_inputs")
+        if self.state_policy not in {"reset", "carry_inputs", "reset_each_input"}:
+            raise ValueError("state_policy must be reset, carry_inputs, or reset_each_input")
         if self.backend != BACKEND_NAME:
             raise ValueError(f"unsupported QRC backend: {self.backend}")
 
@@ -140,7 +140,13 @@ class QuantumReservoir:
             self._connected_count += len(connected)
         return np.asarray(features, dtype=float)
 
-    def transform(self, inputs: NDArray[np.float64], *, reset: bool = False) -> NDArray[np.float64]:
+    def transform(
+        self,
+        inputs: NDArray[np.float64],
+        *,
+        reset: bool = False,
+        reset_each_input: bool = False,
+    ) -> NDArray[np.float64]:
         """Return chronological features; reservoir dynamics never consume labels."""
 
         values = np.asarray(inputs, dtype=float)
@@ -153,6 +159,8 @@ class QuantumReservoir:
         started = time.perf_counter()
         output = np.empty((len(values), self.observables.raw_feature_dimension), dtype=float)
         for index, row in enumerate(values):
+            if reset_each_input:
+                self.reset_state()
             output[index] = self.step(row)
         self._state_generation_seconds += time.perf_counter() - started
         return output
@@ -219,6 +227,10 @@ def split_qrc_features(
         train = reservoir.transform(X_train, reset=True)
         validation = reservoir.transform(X_validation, reset=True)
         test = reservoir.transform(X_test, reset=True) if X_test is not None else None
+    elif state_policy == "reset_each_input":
+        train = reservoir.transform(X_train, reset_each_input=True)
+        validation = reservoir.transform(X_validation, reset_each_input=True)
+        test = reservoir.transform(X_test, reset_each_input=True) if X_test is not None else None
     else:
-        raise ValueError("state_policy must be reset or carry_inputs")
+        raise ValueError("state_policy must be reset, carry_inputs, or reset_each_input")
     return train, validation, test

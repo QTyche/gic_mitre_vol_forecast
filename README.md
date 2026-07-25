@@ -258,6 +258,37 @@ ablation remains outstanding. This is exact classical density-matrix
 simulation of a quantum reservoir—not physical-QPU execution or evidence of
 quantum advantage. See `docs/qrc_encoding_density.md`.
 
+### QRC state-memory ablation
+
+The state-memory ablation fixes the validation/performance-cost candidate at
+two qubits and `V=2`, then changes only whether the full reservoir state is
+carried between market observations or reset before every observation. Both
+conditions preserve the established partial input-qubit reinjection and
+within-observation virtual-node evolution.
+
+```bash
+python scripts/run_qrc_state_memory_ablation.py \
+  --state-policies carry_inputs reset_each_input \
+  --seeds 2026 \
+  --smoke
+
+python scripts/run_qrc_state_memory_ablation.py \
+  --state-policies carry_inputs reset_each_input \
+  --seeds 2026 2027 2028
+```
+
+Outputs under `results/qrc_state_memory_ablation/` include split-level and
+seed-aggregated tables, paired carry-minus-reset differences, a
+validation-only policy decision, five PNG/PDF figure pairs, feature
+autocorrelation and lagged-input correlation tables, effective-rank and
+conditioning diagnostics, and initial-state perturbation-decay evidence. Runs
+are deterministic, resume-safe, checksum-verified, synthetic-data rejecting,
+and isolated from every previous experiment.
+
+QLIKE and RMSE are lower-is-better metrics; their paired tables make the sign
+interpretation explicit. Test results do not influence the state-policy
+choice. See `docs/qrc_state_memory_ablation.md`.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training

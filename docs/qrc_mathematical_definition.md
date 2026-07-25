@@ -85,9 +85,14 @@ floored only by the existing evaluation policy.
 - `reset`: reset the complete density matrix before each split.
 - `carry_inputs`: reset before train only, then carry state through validation
   and test inputs chronologically.
+- `reset_each_input`: reset the complete density matrix before every market
+  observation while retaining state across that observation's virtual
+  substeps.
 
 Validation state may depend on training inputs; test state may depend on train
-and validation inputs. No label enters either state transition.
+and validation inputs under `carry_inputs`. Under `reset_each_input`, each
+observation starts from the same fixed state and has no cross-observation
+reservoir memory. No label enters any state transition.
 
 ## Finite-shot observable extension
 

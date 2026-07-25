@@ -1,0 +1,30 @@
+schema_version: 1
+study:
+  id: exact_qrc_state_memory_ablation_v1
+  project_root: ..
+  output_root: results/qrc_state_memory_ablation
+  classifier_reference: configs/models/qrc_classifier_pilot.yaml
+  classifier_reference_sha256: 65a8b098aa466b2ab0b336cb8f5f6cabe412c43a2e8b27673d427304c24e0002
+  regressor_reference: configs/models/qrc_regressor_pilot.yaml
+  regressor_reference_sha256: 3a3c1d75521c6e0ac027686fade31d319c16108a699efbde1eeb147bc4158bb3
+  encoding_density_candidates: results/qrc_encoding_density/tables/qrc_encoding_density_validation_candidates.json
+  encoding_density_candidates_sha256: fdb4dca54d7baa780fc90b4396f8853a1ac42ebb501b289430918f93590d85a8
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  selected_virtual_nodes: 2
+  state_policies: [carry_inputs, reset_each_input]
+  reservoir_seeds: [2026, 2027, 2028]
+  smoke_state_policies: [carry_inputs, reset_each_input]
+  smoke_seeds: [2026]
+fixed_qrc:
+  n_qubits: 2
+  virtual_nodes: 2
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  tau: 1.0
+  input_scaling: 0.5
+  backend: numpy_density_matrix_exact
+  exact_noiseless: true
+diagnostics:
+  maximum_lag: 20
+  perturbation_steps: 20
