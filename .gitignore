@@ -33,6 +33,7 @@ results/qrc_*/
 results/final_financial_qrc/
 results/qbraid/
 results/statistical_validation/
+results/benchmark_diagnostics/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

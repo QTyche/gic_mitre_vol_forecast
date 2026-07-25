@@ -1,0 +1,214 @@
+schema_version: 1
+study:
+  id: frozen_benchmark_diagnostics_v1
+  project_root: ..
+  output_root: results/benchmark_diagnostics
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  financial_architecture_manifest:
+    path: results/final_financial_qrc/final_architecture_manifest.json
+    sha256: 10a431b7d047f5e0b18b657815492560a717aca6588067402bf47cb64983190f
+  qrc_exact_table:
+    path: results/final_financial_qrc/tables/final_qrc_exact_per_run.json
+    sha256: 6ab5dc8d355a87ae6aea3ca84843d2144ce7a8cb18d7dbb3b44041945e3887a8
+diagnostics:
+  primary_calibration_bins: 10
+  sensitivity_calibration_bins: [5, 15, 20]
+  rolling_window: 60
+  bootstrap:
+    repetitions: 5000
+    smoke_repetitions: 200
+    block_length: 10
+    seed: 2026
+financial_data:
+  manifest:
+    path: data/processed/public_market/data_manifest.json
+    sha256: 97c280252b0aeabc2e524d97da4c152f5a3f11429a223044600dc99a1edafd33
+  training:
+    path: data/processed/public_market/train.csv
+    sha256: 8da0ecc34f58bdf27f73f50ecf26e1f99cdf5bb295777ec5206887f38a5ea23c
+  validation:
+    path: data/processed/public_market/validation.csv
+    sha256: 426635e8d171fcdb8a9cafe9bb8b792d982b339bf7e5ff0da708277c9a3e085f
+  test:
+    path: data/processed/public_market/test.csv
+    sha256: a0d11d310bc8af26df39fb3a8e2447d8c2783dcac51e7d90d38de44b0566eb10
+  regime_thresholds:
+    path: data/processed/public_market/regime_thresholds.json
+    sha256: 8ef5126d83c709ce52b268d6f5178f078c5c3439fc769ce465fe4986782864e8
+financial_regression:
+  rv_persistence:
+    display_name: Realised-variance persistence
+    validation:
+      path: results/public_market/20260721T160855.499954Z_rv_persistence_rv_regression_seed2026/validation_predictions.csv
+      sha256: 0633cdd90de20d74c88a0f880a088814b7fb969a5d59b2a80d3f517c465a50fc
+    test:
+      path: results/public_market/20260721T160855.499954Z_rv_persistence_rv_regression_seed2026/test_predictions.csv
+      sha256: a514d2574d9a7f113f862492d783734c627a4b3692d8acc37e15f5d18b491468
+  esn_regressor:
+    display_name: ESN regressor
+    validation:
+      path: results/public_market/20260721T160858.919809Z_esn_regressor_rv_regression_seed2026/validation_predictions.csv
+      sha256: f0a94186fbb21170c3f1a4f783144833e63da28e6a1ee794ae538b2128611999
+    test:
+      path: results/public_market/20260721T160858.919809Z_esn_regressor_rv_regression_seed2026/test_predictions.csv
+      sha256: a7262515fea8773729570ab224c074e4f50183781574c40886677f869fb335f7
+  garch_1_1:
+    display_name: GARCH(1,1)
+    validation:
+      path: results/garch_baseline/runs/20260725T163422.674310Z_gaussian_garch_1_1_full/validation_predictions.csv
+      sha256: 300176b71b308dacdbf2c9e1bfb229dd27d67b0e320e90c743516a30952055f0
+    test:
+      path: results/garch_baseline/runs/20260725T163422.674310Z_gaussian_garch_1_1_full/test_predictions.csv
+      sha256: ad823829f7ce6a11bac94e876aa57988cea722d61497760f80dcd6b82c4c5ff4
+  qrc_2026:
+    display_name: QRC 2026
+    reservoir_seed: 2026
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T165947.075610Z_qrc_regressor_rv_regression_seed2026/validation_predictions.csv
+      sha256: 3fe035131c79f757a5a22d606d879e5c179384436a31ae900edc93e11a14ed4b
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T165947.075610Z_qrc_regressor_rv_regression_seed2026/test_predictions.csv
+      sha256: 11f856d493171d2eaa4422ff66e953f48eb5727e13180508fc79cb4e98e7c82d
+  qrc_2027:
+    display_name: QRC 2027
+    reservoir_seed: 2027
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.209148Z_qrc_regressor_rv_regression_seed2027/validation_predictions.csv
+      sha256: 6166b98a9491f2a4aac529d69c7cb152a0bf9e976dae79d6592196686e6791f1
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.209148Z_qrc_regressor_rv_regression_seed2027/test_predictions.csv
+      sha256: edc0df26843c3179d40c17c625c6e19c3f8c8600bd12c251e81933281265e8d6
+  qrc_2028:
+    display_name: QRC 2028
+    reservoir_seed: 2028
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.990460Z_qrc_regressor_rv_regression_seed2028/validation_predictions.csv
+      sha256: 8488dffa3fc1e9e494141f6b5cdfde8225906a33e7dbdc8a7059b9066aeb933b
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.990460Z_qrc_regressor_rv_regression_seed2028/test_predictions.csv
+      sha256: 4b3a2662b6d554adf6b0110b5ae36b0063b4a82513635d0c577b4c44f0795da2
+financial_classification:
+  majority_classifier:
+    display_name: Majority classifier
+    probability_model: false
+    validation:
+      path: results/public_market/20260721T160846.586976Z_majority_classifier_regime_classification_seed2026/validation_predictions.csv
+      sha256: 906b2731a48917b46e1fe0d1e635acc51fac918f48206a1473a7654ffee1072e
+    test:
+      path: results/public_market/20260721T160846.586976Z_majority_classifier_regime_classification_seed2026/test_predictions.csv
+      sha256: d3aa5d9bbdbcfcb324c881507e941891a1cc7caa7ebc9e5e6365a75bfc4390f2
+  regime_persistence:
+    display_name: Regime persistence
+    probability_model: false
+    validation:
+      path: results/public_market/20260721T160848.696340Z_regime_persistence_regime_classification_seed2026/validation_predictions.csv
+      sha256: f27743a34619419af5bbb475dcdd69169096e9ab7a59608265415144b2f58e73
+    test:
+      path: results/public_market/20260721T160848.696340Z_regime_persistence_regime_classification_seed2026/test_predictions.csv
+      sha256: 9517e4807286fc16727253610371bf2908c06b46344741c80060a718144e5e16
+  logistic_regression:
+    display_name: Logistic regression
+    probability_model: true
+    validation:
+      path: results/public_market/20260721T160850.786541Z_logistic_regression_regime_classification_seed2026/validation_predictions.csv
+      sha256: 7a621189f8041379df61d0e5f55a48d0aaf5ef09e1e605e98c2a227bc77a3aa7
+    test:
+      path: results/public_market/20260721T160850.786541Z_logistic_regression_regime_classification_seed2026/test_predictions.csv
+      sha256: 7e22dad8be4e9c549fae7af1616af08181bfb188f3ffdb7389c1312a44faa23a
+  esn_classifier:
+    display_name: ESN classifier
+    probability_model: true
+    validation:
+      path: results/public_market/20260721T160852.942036Z_esn_classifier_regime_classification_seed2026/validation_predictions.csv
+      sha256: ec1350d713814e761f11dc4ba55b7b8c1126952776f60086d9118837103e1039
+    test:
+      path: results/public_market/20260721T160852.942036Z_esn_classifier_regime_classification_seed2026/test_predictions.csv
+      sha256: 1cffc0aaf65e1b0493edb519afdc7c7b7405c629e0bd16b01ec0f42994970471
+  qrc_2026:
+    display_name: QRC 2026
+    reservoir_seed: 2026
+    probability_model: true
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T165946.513882Z_qrc_classifier_regime_classification_seed2026/validation_predictions.csv
+      sha256: a6a0d0d7090ff7ae880e07a8862419737fd240c46e1c409bdea5e96bdd73387a
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T165946.513882Z_qrc_classifier_regime_classification_seed2026/test_predictions.csv
+      sha256: 48ce272c18492eb91d38a18c311d89d5e4f819ed86a4b0af62670e442caa1cd3
+  qrc_2027:
+    display_name: QRC 2027
+    reservoir_seed: 2027
+    probability_model: true
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T170425.951468Z_qrc_classifier_regime_classification_seed2027/validation_predictions.csv
+      sha256: b00fedb29afbce13cf9cb98499c840504c7555b8704fcdab9b5768fec623031c
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T170425.951468Z_qrc_classifier_regime_classification_seed2027/test_predictions.csv
+      sha256: 11c06f12e1b0089b883d37af06bf49b8290abb1df75d08c396ade0eee03c4090
+  qrc_2028:
+    display_name: QRC 2028
+    reservoir_seed: 2028
+    probability_model: true
+    validation:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.757236Z_qrc_classifier_regime_classification_seed2028/validation_predictions.csv
+      sha256: c6a9d72df4ff950df7bcaf3349071e2420b544c3eb8b9fac16222d5b1199a19d
+    test:
+      path: results/final_financial_qrc/exact/runs/20260725T170426.757236Z_qrc_classifier_regime_classification_seed2028/test_predictions.csv
+      sha256: 6fa2143f9850e8ba257818fd34d0023f440fad370b96b972784aaf48fbec5890
+qrc_numerical:
+  2026:
+    path: results/final_financial_qrc/exact/runs/20260725T165946.513882Z_qrc_classifier_regime_classification_seed2026/qrc_numerical_diagnostics.json
+    sha256: bf3a27a622613d01db5b79c256e7e57da30ab50e5a8bbd27ec1565214631c85e
+  2027:
+    path: results/final_financial_qrc/exact/runs/20260725T170425.951468Z_qrc_classifier_regime_classification_seed2027/qrc_numerical_diagnostics.json
+    sha256: 4621cda5aabd8282a58a23eb5d390db0984f29c9d97d99348a1a24d756005890
+  2028:
+    path: results/final_financial_qrc/exact/runs/20260725T170426.757236Z_qrc_classifier_regime_classification_seed2028/qrc_numerical_diagnostics.json
+    sha256: 8dbfecdb6503d13ae4136b6dc8e386a6c809868000ca568214ef8d5c16e1b296
+mnist:
+  selected_indices:
+    path: results/qrc_mnist/dataset/selected_indices.json
+    sha256: aa47e89261895fb90731ed73db8c56e419563bf64445dc2af1ff2ed8b82a02ee
+  models:
+    flattened_logistic:
+      display_name: Flattened logistic
+      path: results/qrc_mnist/runs/full/logistic_baseline_flattened_28_by_5_8e509d4259ef7bfc/test_predictions.csv
+      sha256: 8c1ca0b58d32f64ad94c8fc42c0c460c09101d5bad27efcdf6b9f89b9a1a219a
+    esn:
+      display_name: ESN
+      path: results/qrc_mnist/runs/full/esn_baseline_size_controlled_32_3e0380ad3bceef0e/test_predictions.csv
+      sha256: be799ea56dc7217e492e00d76981d952028ef55bce77190b07c68cf8c1d8632e
+    qrc_2026:
+      display_name: QRC 2026
+      reservoir_seed: 2026
+      condition: analytic
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_73e0847be1eb1096/test_predictions.csv
+      sha256: 42520c7540bcc4501593df9e00ad9d016c874b38918955cf9964f2ab9c362464
+    qrc_2027:
+      display_name: QRC 2027
+      reservoir_seed: 2027
+      condition: analytic
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_250ff5bd6051784e/test_predictions.csv
+      sha256: 36158bd5ab8cfe80820d476d7e197121baf091007b7e4504ed41500553b902f4
+    qrc_2028:
+      display_name: QRC 2028
+      reservoir_seed: 2028
+      condition: analytic
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_a3c0c75e0d945f83/test_predictions.csv
+      sha256: 44e6369e7c356c1f9a5dd93d138d4f964047a6b5a3fda63fbeced81c15c61890
+  robustness:
+    analytic:
+      display_name: Analytic
+      path: results/qrc_mnist/runs/full/qrc_exact_analytic_73e0847be1eb1096/test_predictions.csv
+      sha256: 42520c7540bcc4501593df9e00ad9d016c874b38918955cf9964f2ab9c362464
+    shots_2048:
+      display_name: 2,048 shots
+      path: results/qrc_mnist/runs/full/qrc_robustness_shots_2048_808d58ab615b2d8f/test_predictions.csv
+      sha256: 1d6fb1d4e87f1270f24b9fe46180da52cd1d4bac3b658cd57e7c59449797432c
+    depolarizing_0_01:
+      display_name: Depolarising 0.01
+      path: results/qrc_mnist/runs/full/qrc_robustness_depolarizing_0_01_0b704d9addf00666/test_predictions.csv
+      sha256: 59d61ceb3ce066ab6251f9c4dd3dd2aa95562bf839ec7ec635311f38a4468c10
+    measurement_flip_0_02:
+      display_name: Measurement flip 0.02
+      path: results/qrc_mnist/runs/full/qrc_robustness_measurement_flip_0_02_596bae0f38010efd/test_predictions.csv
+      sha256: 1c562565b3b41a688f5a79279ada8f408ae30293dbee300ed2863b3c26209b95

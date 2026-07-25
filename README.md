@@ -423,6 +423,34 @@ This is classical statistical analysis of predictions produced by exact
 classical density-matrix simulation of a quantum reservoir. It is not physical
 QPU execution and makes no quantum-advantage claim.
 
+## Frozen benchmark diagnostics
+
+Stage 2B adds post-freeze calibration, regime, transition, temporal,
+conditioning, and MNIST digit-level diagnostics. It consumes checksum-pinned
+prediction files and never fits or recalibrates a model, changes thresholds or
+architectures, creates an ensemble, or uses diagnostics for selection.
+
+```bash
+python scripts/run_benchmark_diagnostics.py --smoke
+python scripts/run_benchmark_diagnostics.py --smoke
+python scripts/run_benchmark_diagnostics.py
+```
+
+Outputs under `results/benchmark_diagnostics/` include 15 CSV/JSON table
+pairs, 13 publication-ready PNG/PDF figure pairs, a run summary, and complete
+provenance. Financial uncertainty uses deterministic moving-block bootstrap;
+MNIST digit and paired-accuracy intervals use class-stratified paired
+bootstrap.
+
+Lead-time analysis is explicitly omitted because the frozen financial rows
+provide a five-day aggregate target but no unique target or transition date.
+No lead is inferred. See `docs/benchmark_diagnostics.md` for the fixed
+thresholds, sign conventions, output contract, and limitations.
+
+The workflow is classical analysis of frozen exact-simulation and labelled
+finite-shot/noise predictions. It is not physical-QPU execution and makes no
+quantum-advantage claim.
+
 ## Reproducibility principles
 
 Temporal splits are never shuffled. Preprocessing must be fitted on training
