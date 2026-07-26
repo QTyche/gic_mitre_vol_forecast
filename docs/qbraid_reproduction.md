@@ -84,7 +84,8 @@ This checks:
 
 - supported Python and required packages;
 - clean Git state and compatible submission ancestry;
-- exact hashes of the frozen financial, MNIST, and publication configs;
+- exact hashes of the frozen financial, MNIST, publication, reproduction, and
+  processed-data semantic-reference configs;
 - the frozen public-data declaration and four official MNIST download hashes;
 - final two-qubit architecture identity and architecture-manifest checksum;
 - the 42 files selected by the publication asset manifest;
@@ -117,33 +118,54 @@ The orchestrator:
 
 1. repeats the frozen checks;
 2. downloads or verifies the named Yahoo snapshot and records provider hashes;
-3. causally prepares and audits the frozen temporal dataset, requiring exact
-   checksums for all six processed model-input files;
-4. fits the required public classical readouts;
-5. fits leakage-safe Gaussian GARCH(1,1);
-6. runs the frozen two-qubit, two-virtual-node exact financial QRC for seeds
+3. causally prepares and audits the frozen temporal dataset;
+4. requires exact raw-file SHA-256 equality against the generated immutable
+   snapshot manifest, then verifies all six generated processed files against
+   the tracked semantic commitments;
+5. fits the required public classical readouts;
+6. fits leakage-safe Gaussian GARCH(1,1);
+7. runs the frozen two-qubit, two-virtual-node exact financial QRC for seeds
    2026, 2027, and 2028, sharing each seed’s feature cache across readouts;
-7. downloads checksum-pinned official MNIST and runs the genuine smoke subset;
-8. compares financial QRC and GARCH headline values with the Stage 2C facts.
+8. downloads checksum-pinned official MNIST and runs the genuine smoke subset;
+9. compares financial QRC and GARCH headline values with the Stage 2C facts.
 
 No task can fall back to fixtures or generated digits. Floating comparisons use
 absolute tolerance `1e-10` plus relative tolerance `1e-9`. This covers
 final-digit differences across BLAS, SciPy, and CPU implementations; it does
-not relax processed data, config, or publication checksums.
+not relax model outputs, tracked config, or publication checksums.
 
 The historical raw snapshot declaration is retained exactly. Yahoo currently
 returns revised final digits for SPY’s `adjusted_close` field, which is not used
 by any feature, target, split, threshold, or GARCH return. The evidence package
 therefore records both the historical and current raw hashes, flags the
-provider revision, and separately proves byte equality of
-`features_unscaled.csv`, the three temporal splits, preprocessing parameters,
-and regime thresholds. Any change to one of those six scientific inputs is
-fatal.
+provider revision, and requires each downloaded file to remain byte-exact to
+the manifest created with that immutable download.
+
+The first qBraid x86 validation showed different byte hashes for every
+float-bearing processed CSV and `preprocessing.json`, while
+`regime_thresholds.json` remained byte-identical. The writers already force LF
+line endings and deterministic JSON formatting. The source is final-bit
+variation from platform `log` implementations and CPU-specific rolling,
+mean, and standard-deviation reductions: CSV preserves 12 significant digits,
+and preprocessing JSON preserves full binary64 round trips.
+
+Generated processed artifacts therefore retain both historical and current
+byte SHA-256 values but are gated by
+`configs/reproduction/processed_data_semantic_reference.json`. The canonical
+rule parses finite numbers, normalizes signed zero, and commits values at 10
+significant decimal digits, whose maximum relative quantization width is below
+`1e-9`. Row counts, column names and order, date sequences, row order,
+date/split membership, integral labels, missing-value positions, threshold and
+preprocessing JSON structure, and all non-float values remain exact. A mismatch
+in any of those fields, or in any canonical numeric digest, is fatal. The full
+report is
+`qbraid_evidence/final_clean_room/processed_data_semantic_verification.json`.
 
 The main additional report is:
 
 ```text
 qbraid_evidence/final_clean_room/headline_reproduction_report.json
+qbraid_evidence/final_clean_room/processed_data_semantic_verification.json
 ```
 
 Normal generated files remain in ignored `data/` and `results/` trees.
@@ -205,7 +227,8 @@ python scripts/package_qbraid_evidence.py
 ```
 
 This adds the package freeze, dataset/checksum report, failures/resolutions
-record, and checksum inventory, then creates:
+record, raw byte checks, processed historical/current byte checks, the semantic
+verification report, and checksum inventory, then creates:
 
 ```text
 qbraid_evidence/phase3_final_clean_room.tar.gz

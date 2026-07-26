@@ -12,6 +12,7 @@ from typing import Any, cast
 
 import yaml
 
+from qtyche_qrc.data.semantic_integrity import require_processed_semantic_integrity
 from qtyche_qrc.reproducibility.verification import (
     compare_numeric,
     find_repository_root,
@@ -59,25 +60,14 @@ def _verify_frozen_processed_inputs(root: Path) -> None:
             (root / "configs/reproduction/final_financial_qrc.yaml").read_text(encoding="utf-8")
         ),
     )
-    expected = cast(dict[str, str], reproduction["study"]["processed_file_sha256"])
-    mismatches = {
-        name: {
-            "expected": checksum,
-            "actual": (
-                sha256_path(root / "data/processed/public_market" / name)
-                if (root / "data/processed/public_market" / name).is_file()
-                else None
-            ),
-        }
-        for name, checksum in expected.items()
-        if not (root / "data/processed/public_market" / name).is_file()
-        or sha256_path(root / "data/processed/public_market" / name) != checksum
-    }
-    if mismatches:
-        raise ValueError(
-            "cannot prepare diagnostics from non-frozen processed inputs: "
-            + json.dumps(mismatches, sort_keys=True)
-        )
+    study = cast(dict[str, Any], reproduction["study"])
+    reference = root / str(study["processed_semantic_reference"])
+    require_processed_semantic_integrity(
+        root / "data/processed/public_market",
+        data_config_path=root / str(study["data_config"]),
+        reference_path=reference,
+        expected_reference_sha256=str(study["processed_semantic_reference_sha256"]),
+    )
 
 
 def _facts(root: Path) -> dict[str, dict[str, Any]]:

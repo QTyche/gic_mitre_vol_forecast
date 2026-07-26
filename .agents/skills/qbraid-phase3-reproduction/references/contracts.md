@@ -22,14 +22,25 @@
 
 ## Equality policy
 
-Require exact SHA-256 equality for tracked configs, dataset declarations, all
-six processed financial model-input files, publication-manifest-selected files,
-and generated evidence artifacts. Record the historical and current raw
-provider hashes separately: Yahoo may revise unused `adjusted_close` digits,
-but any processed-file difference is fatal. Regenerated metrics use absolute
-tolerance `1e-10` plus relative tolerance `1e-9` because BLAS, SciPy, and CPU
-implementations can change final floating digits. Never change a tolerance
-without documenting the observed delta and scientific justification.
+Require exact SHA-256 equality for tracked configs, dataset declarations, the
+processed-data semantic reference, publication-manifest-selected files, and
+generated evidence artifacts. Require each downloaded raw market file to match
+its per-download immutable manifest exactly; record historical provider hashes
+separately because Yahoo may revise unused `adjusted_close` digits.
+
+For the six generated processed financial files, record historical and current
+byte hashes and require the tracked semantic commitments. Columns, row order,
+dates, split membership, labels, missingness, JSON structure, and non-float
+values are exact. Finite numeric values are normalized at 10 significant
+decimal digits, with maximum relative quantization width below `1e-9`; signed
+zero is normalized and non-finite data are rejected. This covers platform
+last-bit differences in `log` and reductions without accepting material data
+changes.
+
+Regenerated metrics use absolute tolerance `1e-10` plus relative tolerance
+`1e-9` because BLAS, SciPy, and CPU implementations can change final floating
+digits. Never change a tolerance or semantic reference without documenting the
+observed delta and scientific justification.
 
 ## Runtime status
 

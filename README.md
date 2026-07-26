@@ -28,10 +28,10 @@ python scripts/reproduce_phase3.py --verify
 ```
 
 The fast check verifies the clean Git state, compatible submission ancestry,
-dependencies, frozen configs and data declarations, final architecture
-checksum, all 42 manifest-selected paper assets, publication-tree digest,
-source-to-fact records, prohibited claims, and focused deterministic tests. It
-does not execute a model.
+dependencies, frozen configs, the tracked processed-data semantic reference,
+data declarations, final architecture checksum, all 42 manifest-selected paper
+assets, publication-tree digest, source-to-fact records, prohibited claims, and
+focused deterministic tests. It does not execute a model.
 
 Continue with one command per tier:
 
@@ -42,13 +42,17 @@ python scripts/package_qbraid_evidence.py
 ```
 
 Headline reproduction downloads the named public-market snapshot, verifies the
-six frozen processed model-input files byte-for-byte, runs the required
-classical readouts, GARCH, the three-seed exact financial QRC, and
-genuine-MNIST smoke, then compares regenerated financial values with the frozen
-facts. Full reproduction adds financial robustness, full genuine MNIST,
-statistical validation, diagnostics, and publication regeneration into the
-isolated evidence tree. Both tiers resume only tasks whose recorded artifacts
-still exist with matching checksums.
+raw files byte-for-byte against their download manifest, then verifies the six
+generated processed model-input files against a tracked semantic commitment.
+That commitment requires exact rows, column order, dates, labels, split
+membership, missingness, and JSON structure plus numeric equality after
+canonicalization to 10 significant decimal digits. It then runs the required
+classical readouts, GARCH, the three-seed exact financial QRC, and genuine-MNIST
+smoke before comparing regenerated financial values with the frozen facts. Full
+reproduction adds financial robustness, full genuine MNIST, statistical
+validation, diagnostics, and publication regeneration into the isolated
+evidence tree. Both tiers resume only tasks whose recorded artifacts still
+exist with matching checksums.
 
 Outputs are under ignored `data/`, `results/`, and
 `qbraid_evidence/final_clean_room/`. The evidence archive and SHA-256 sidecar
@@ -68,13 +72,20 @@ Known limitations: Yahoo and the checksum-pinned Google MNIST mirror must be
 reachable on the first run; exact checks can pass offline only after those
 downloads exist. Yahoo has revised final digits in SPY’s unused
 `adjusted_close` field since the historical snapshot was recorded. The
-evidence reports that raw-byte difference explicitly and requires exact
-SHA-256 equality for all six processed files that constitute the model-input,
-target, split, threshold, and preprocessing contract. CPU and BLAS differences
-can change final floating digits, so regenerated metrics use a declared
-`1e-10` absolute plus `1e-9` relative tolerance. This is classical exact
-density-matrix and controlled finite-shot/noise simulation of a quantum
-reservoir. No physical QPU is executed, and no quantum advantage is claimed.
+evidence reports that historical difference explicitly while requiring each
+downloaded raw file to match its own immutable snapshot manifest exactly.
+Apple ARM and qBraid x86 implementations of `log` and rolling/reduction
+operations can differ in final binary digits; 12-digit CSV output and
+full-round-trip preprocessing JSON turn those harmless differences into
+different byte hashes. All historical and current byte hashes remain recorded,
+but generated processed data pass only if their tracked semantic digests match.
+Ten-significant-digit canonicalization has a relative quantization width below
+`1e-9`; non-finite values are rejected, and any material value, threshold,
+date, label, split, missingness, row, or schema change is fatal. Regenerated
+metrics separately use a declared `1e-10` absolute plus `1e-9` relative
+tolerance. This is classical exact density-matrix and controlled
+finite-shot/noise simulation of a quantum reservoir. No physical QPU is
+executed, and no quantum advantage is claimed.
 
 See [the qBraid clean-room guide](docs/qbraid_reproduction.md) for the evidence
 schema, recovery rules, and full output inventory.

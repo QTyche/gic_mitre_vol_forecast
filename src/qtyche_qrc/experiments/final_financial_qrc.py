@@ -16,6 +16,7 @@ import yaml
 
 from qtyche_qrc.data.config import load_data_config
 from qtyche_qrc.data.download import sha256_file, verify_public_snapshot
+from qtyche_qrc.data.semantic_integrity import require_processed_semantic_integrity
 from qtyche_qrc.experiments.model_config import ModelExperimentConfig, load_model_config
 from qtyche_qrc.experiments.qrc_robustness import run_qrc_noise_robustness
 from qtyche_qrc.experiments.qrc_run import (
@@ -62,6 +63,8 @@ class FinalQRCConfig:
     regressor_config: Path
     robustness_config: Path
     processed_file_sha256: dict[str, str] | None
+    processed_semantic_reference: Path | None
+    processed_semantic_reference_sha256: str | None
     seeds: tuple[int, ...]
     smoke_seeds: tuple[int, ...]
     raw: dict[str, Any]
@@ -163,6 +166,16 @@ def load_final_qrc_config(path: Path) -> FinalQRCConfig:
     if not isinstance(project_setting, str):
         raise ValueError("study.project_root must be a path")
     project_root = (source.parent / project_setting).resolve()
+    semantic_reference_value = study.get("processed_semantic_reference")
+    semantic_reference_sha256 = study.get("processed_semantic_reference_sha256")
+    if (semantic_reference_value is None) != (semantic_reference_sha256 is None):
+        raise ValueError(
+            "processed semantic reference path and SHA-256 must be configured together"
+        )
+    if semantic_reference_sha256 is not None and (
+        not isinstance(semantic_reference_sha256, str) or len(semantic_reference_sha256) != 64
+    ):
+        raise ValueError("processed semantic reference checksum must be a SHA-256 string")
     config = FinalQRCConfig(
         source=source,
         project_root=project_root,
@@ -179,6 +192,18 @@ def load_final_qrc_config(path: Path) -> FinalQRCConfig:
             project_root, study.get("robustness_config"), "study.robustness_config"
         ),
         processed_file_sha256=_optional_processed_checksums(study),
+        processed_semantic_reference=(
+            _resolve(
+                project_root,
+                semantic_reference_value,
+                "study.processed_semantic_reference",
+            )
+            if semantic_reference_value is not None
+            else None
+        ),
+        processed_semantic_reference_sha256=(
+            str(semantic_reference_sha256) if semantic_reference_sha256 is not None else None
+        ),
         seeds=tuple(int(value) for value in cast(list[int], study.get("reservoir_seeds"))),
         smoke_seeds=tuple(int(value) for value in cast(list[int], study.get("smoke_seeds"))),
         raw=root,
@@ -190,6 +215,15 @@ def load_final_qrc_config(path: Path) -> FinalQRCConfig:
         ("robustness_config", config.robustness_config),
     ):
         _verify_checksum(path_value, study.get(f"{key}_sha256"), key)
+    if (
+        config.processed_semantic_reference is not None
+        and config.processed_semantic_reference_sha256 is not None
+    ):
+        _verify_checksum(
+            config.processed_semantic_reference,
+            config.processed_semantic_reference_sha256,
+            "processed_semantic_reference",
+        )
     evidence = _mapping(root.get("selection_evidence"), "selection_evidence")
     for name, record_value in evidence.items():
         record = _mapping(record_value, f"selection_evidence.{name}")
@@ -265,7 +299,18 @@ def verify_final_public_data(
         )
     if dataset.manifest.get("source_snapshot_id") != config.snapshot_id:
         raise ValueError("processed data do not derive from the frozen snapshot")
-    if config.processed_file_sha256 is not None:
+    semantic_report: dict[str, Any] | None = None
+    if (
+        config.processed_semantic_reference is not None
+        and config.processed_semantic_reference_sha256 is not None
+    ):
+        semantic_report = require_processed_semantic_integrity(
+            classifier.processed_dir,
+            data_config_path=config.data_config,
+            reference_path=config.processed_semantic_reference,
+            expected_reference_sha256=config.processed_semantic_reference_sha256,
+        )
+    elif config.processed_file_sha256 is not None:
         mismatches = {
             name: {
                 "expected": expected,
@@ -291,10 +336,16 @@ def verify_final_public_data(
         },
         "processed_manifest_sha256": dataset.processed_checksums["data_manifest.json"],
         "processed_verification_mode": (
-            "exact_file_checksums"
-            if config.processed_file_sha256 is not None
-            else "manifest_self_consistency"
+            "canonical_semantic_digest_v1"
+            if semantic_report is not None
+            else (
+                "exact_file_checksums"
+                if config.processed_file_sha256 is not None
+                else "manifest_self_consistency"
+            )
         ),
+        "processed_semantic_verification": semantic_report,
+        "historical_processed_file_sha256": config.processed_file_sha256,
         "processed_checksums": dataset.processed_checksums,
         "split_row_counts": {
             "train": len(dataset.train.X),

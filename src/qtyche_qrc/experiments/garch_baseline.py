@@ -24,6 +24,7 @@ from sklearn.metrics import (  # type: ignore[import-untyped]
 
 from qtyche_qrc.data.config import load_data_config
 from qtyche_qrc.data.download import sha256_file, verify_public_snapshot
+from qtyche_qrc.data.semantic_integrity import require_processed_semantic_integrity
 from qtyche_qrc.evaluation.metrics import regression_metrics
 from qtyche_qrc.experiments.run import SyntheticResultsError, _git_metadata, _write_json
 from qtyche_qrc.models.baselines.garch import GARCHFitResult, GaussianGARCH11
@@ -56,6 +57,8 @@ class GARCHStudyConfig:
     data_snapshot_id: str
     processed_manifest_sha256: str
     processed_file_sha256: dict[str, str] | None
+    processed_semantic_reference: Path | None
+    processed_semantic_reference_sha256: str | None
     qrc_selection_summary: Path
     qrc_selection_summary_sha256: str
     public_baseline_results: Path
@@ -165,6 +168,16 @@ def load_garch_study_config(path: Path) -> GARCHStudyConfig:
     model = _mapping(root.get("model"), "model")
     smoke = _mapping(root.get("smoke"), "smoke")
     project_root = (source.parent / _text(study, "project_root", "study")).resolve()
+    semantic_reference_value = study.get("processed_semantic_reference")
+    semantic_reference_sha256 = study.get("processed_semantic_reference_sha256")
+    if (semantic_reference_value is None) != (semantic_reference_sha256 is None):
+        raise ValueError(
+            "processed semantic reference path and SHA-256 must be configured together"
+        )
+    if semantic_reference_sha256 is not None and (
+        not isinstance(semantic_reference_sha256, str) or len(semantic_reference_sha256) != 64
+    ):
+        raise ValueError("processed semantic reference checksum must be a SHA-256 string")
     config = GARCHStudyConfig(
         source=source,
         project_root=project_root,
@@ -175,6 +188,14 @@ def load_garch_study_config(path: Path) -> GARCHStudyConfig:
         data_snapshot_id=_text(study, "data_snapshot_id", "study"),
         processed_manifest_sha256=_text(study, "processed_manifest_sha256", "study"),
         processed_file_sha256=_optional_checksum_mapping(study, "processed_file_sha256", "study"),
+        processed_semantic_reference=(
+            (project_root / str(semantic_reference_value)).resolve()
+            if semantic_reference_value is not None
+            else None
+        ),
+        processed_semantic_reference_sha256=(
+            str(semantic_reference_sha256) if semantic_reference_sha256 is not None else None
+        ),
         qrc_selection_summary=(
             project_root / _text(study, "qrc_selection_summary", "study")
         ).resolve(),
@@ -214,6 +235,13 @@ def load_garch_study_config(path: Path) -> GARCHStudyConfig:
         raise ValueError("frozen public-data configuration checksum mismatch")
     if sha256_file(config.qrc_selection_summary) != config.qrc_selection_summary_sha256:
         raise ValueError("frozen final-QRC selection summary checksum mismatch")
+    if (
+        config.processed_semantic_reference is not None
+        and config.processed_semantic_reference_sha256 is not None
+        and sha256_file(config.processed_semantic_reference)
+        != config.processed_semantic_reference_sha256
+    ):
+        raise ValueError("processed semantic reference checksum mismatch")
     qrc_summary = json.loads(config.qrc_selection_summary.read_text(encoding="utf-8"))
     selection = qrc_summary.get("validation_only_state_policy_selection")
     if (
@@ -245,7 +273,18 @@ def verify_garch_public_data(
     if dataset.manifest.get("source_snapshot_id") != config.data_snapshot_id:
         raise ValueError("processed data manifest disagrees with GARCH snapshot ID")
     actual_manifest = dataset.processed_checksums["data_manifest.json"]
-    if config.processed_file_sha256 is None:
+    semantic_report: dict[str, Any] | None = None
+    if (
+        config.processed_semantic_reference is not None
+        and config.processed_semantic_reference_sha256 is not None
+    ):
+        semantic_report = require_processed_semantic_integrity(
+            data_config.processed_path,
+            data_config_path=config.data_config,
+            reference_path=config.processed_semantic_reference,
+            expected_reference_sha256=config.processed_semantic_reference_sha256,
+        )
+    elif config.processed_file_sha256 is None:
         if actual_manifest != config.processed_manifest_sha256:
             raise ValueError("frozen processed-data manifest checksum mismatch")
     else:
@@ -271,10 +310,16 @@ def verify_garch_public_data(
         "processed_manifest_sha256": actual_manifest,
         "historical_processed_manifest_sha256": config.processed_manifest_sha256,
         "processed_verification_mode": (
-            "exact_file_checksums"
-            if config.processed_file_sha256 is not None
-            else "historical_manifest_checksum"
+            "canonical_semantic_digest_v1"
+            if semantic_report is not None
+            else (
+                "exact_file_checksums"
+                if config.processed_file_sha256 is not None
+                else "historical_manifest_checksum"
+            )
         ),
+        "processed_semantic_verification": semantic_report,
+        "historical_processed_file_sha256": config.processed_file_sha256,
         "processed_checksums": dataset.processed_checksums,
         "split_row_counts": {
             "train": len(dataset.train.X),

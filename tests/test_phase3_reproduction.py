@@ -112,8 +112,10 @@ def test_tier_task_selection() -> None:
     assert selected["verify"] == ["frozen_verification", "focused_tests"]
     assert "final_financial_exact" in selected["headline"]
     assert "mnist_smoke" in selected["headline"]
+    assert "processed_semantic_verification" in selected["headline"]
     assert "final_financial_full" in selected["full"]
     assert "mnist_full" in selected["full"]
+    assert "processed_semantic_verification" in selected["full"]
     assert "publication_regeneration" in selected["full"]
     assert "final_financial_full" not in selected["headline"]
 
@@ -246,6 +248,11 @@ def test_reproduction_config_preserves_frozen_architecture() -> None:
         "validation.csv",
     }
     assert all(len(checksum) == 64 for checksum in processed.values())
+    semantic_reference = reproduction["study"]["processed_semantic_reference"]
+    semantic_checksum = reproduction["study"]["processed_semantic_reference_sha256"]
+    assert semantic_reference == ("configs/reproduction/processed_data_semantic_reference.json")
+    assert len(semantic_checksum) == 64
+    assert sha256_path(_root() / semantic_reference) == semantic_checksum
 
 
 def test_prior_result_and_publication_trees_are_not_deleted_or_overwritten() -> None:
@@ -337,6 +344,8 @@ def test_evidence_package_includes_dataset_checksum_report() -> None:
 
     assert '"dataset_checksum_report.json"' in source
     assert '"processed_model_inputs_byte_exact"' in source
+    assert '"processed_model_inputs_semantically_exact"' in source
+    assert '"processed_semantic_verification"' in source
     assert '"provider_revision_detected"' in source
 
 

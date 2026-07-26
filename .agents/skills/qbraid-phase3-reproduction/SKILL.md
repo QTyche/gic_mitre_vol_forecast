@@ -80,9 +80,15 @@ feature caches, model outputs, or the archive.
 - Existing data/results on a first headline/full run: start another clone.
 - Public-data checksum failure: remove only the named failed snapshot file and
   rerun the download task; do not substitute fixture data.
-- Historical raw SPY hash warning with all six processed checks passing:
+- Historical raw SPY hash warning with processed semantic verification passing:
   preserve the provider-revision record. The changed `adjusted_close` digits
-  are unused; do not rewrite data or relax the processed-file checks.
+  are unused; do not rewrite data or relax the raw-file checks.
+- Generated processed byte mismatch: inspect
+  `processed_data_semantic_verification.json`. Accept it only when the report
+  proves exact structure, dates, row order, split membership, labels,
+  missingness, JSON structure, and ten-significant-digit numeric commitments.
+  Any semantic mismatch is fatal; do not regenerate the tracked reference from
+  the candidate run.
 - MNIST checksum failure: remove only the named corrupt IDX gzip and rerun with
   `--download`; never generate digits.
 - Missing fonts/display: retain `MPLBACKEND=Agg`; no system LaTeX is required.

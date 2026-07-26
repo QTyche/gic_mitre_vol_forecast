@@ -44,6 +44,7 @@ tiers:
     - public_download
     - public_prepare
     - public_audit
+    - processed_semantic_verification
     - majority_classifier
     - regime_persistence
     - logistic_classifier
@@ -60,6 +61,7 @@ tiers:
     - public_download
     - public_prepare
     - public_audit
+    - processed_semantic_verification
     - majority_classifier
     - regime_persistence
     - logistic_classifier
@@ -127,6 +129,23 @@ tasks:
       - data/processed/public_market
     watch:
       - results/data_audit
+  processed_semantic_verification:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.data.semantic_integrity
+      - --processed-dir
+      - data/processed/public_market
+      - --data-config
+      - configs/data_public_market.yaml
+      - --reference
+      - configs/reproduction/processed_data_semantic_reference.json
+      - --reference-sha256
+      - 15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11
+      - --output
+      - "{evidence}/processed_data_semantic_verification.json"
+    watch:
+      - "{evidence}/processed_data_semantic_verification.json"
   majority_classifier:
     command:
       - "{python}"

@@ -17,6 +17,7 @@ from typing import Any
 
 import yaml
 
+from qtyche_qrc.data.semantic_integrity import verify_processed_semantic_integrity
 from qtyche_qrc.reproducibility.verification import find_repository_root, sha256_path
 
 REQUIRED_FILES = (
@@ -25,6 +26,7 @@ REQUIRED_FILES = (
     "environment_report.json",
     "execution_report.json",
     "git_report.json",
+    "processed_data_semantic_verification.json",
     "terminal_transcript.log",
 )
 
@@ -33,7 +35,14 @@ def _dataset_checksum_report(root: Path) -> dict[str, Any]:
     frozen_config = yaml.safe_load(
         (root / "configs/reproduction/final_financial_qrc.yaml").read_text(encoding="utf-8")
     )
-    expected_processed = dict(frozen_config["study"]["processed_file_sha256"])
+    study = dict(frozen_config["study"])
+    expected_processed = dict(study["processed_file_sha256"])
+    semantic_report = verify_processed_semantic_integrity(
+        root / "data/processed/public_market",
+        data_config_path=root / str(study["data_config"]),
+        reference_path=root / str(study["processed_semantic_reference"]),
+        expected_reference_sha256=str(study["processed_semantic_reference_sha256"]),
+    )
     processed_manifest_path = root / "data/processed/public_market/data_manifest.json"
     processed_manifest = (
         json.loads(processed_manifest_path.read_text(encoding="utf-8"))
@@ -49,7 +58,11 @@ def _dataset_checksum_report(root: Path) -> dict[str, Any]:
                 "path": path.relative_to(root).as_posix(),
                 "expected_sha256": expected,
                 "actual_sha256": actual,
-                "passed": actual == expected,
+                "byte_exact_to_historical": actual == expected,
+                "semantic_passed": semantic_report.get("processed_files", {})
+                .get(name, {})
+                .get("passed")
+                is True,
             }
         )
 
@@ -89,7 +102,7 @@ def _dataset_checksum_report(root: Path) -> dict[str, Any]:
         and mnist.get("official_partitions_preserved") is True
         and all(record.get("verified") is True for record in mnist.get("files", {}).values())
     )
-    processed_passed = bool(processed_rows) and all(row["passed"] for row in processed_rows)
+    processed_passed = semantic_report["status"] == "pass"
     return {
         "schema_version": 1,
         "status": "pass" if processed_passed and mnist_passed else "fail",
@@ -106,7 +119,10 @@ def _dataset_checksum_report(root: Path) -> dict[str, Any]:
             "provider_revision_detected": bool(raw_rows)
             and not all(row["passed"] for row in raw_rows),
             "processed_file_checks": processed_rows,
-            "processed_model_inputs_byte_exact": processed_passed,
+            "processed_model_inputs_byte_exact": bool(processed_rows)
+            and all(row["byte_exact_to_historical"] for row in processed_rows),
+            "processed_model_inputs_semantically_exact": processed_passed,
+            "processed_semantic_verification": semantic_report,
             "processed_manifest_sha256": (
                 sha256_path(processed_manifest_path) if processed_manifest_path.is_file() else None
             ),
@@ -121,9 +137,11 @@ def _dataset_checksum_report(root: Path) -> dict[str, Any]:
                 else None
             ),
             "interpretation": (
-                "The exact processed files are the immutable model-input contract. "
-                "A provider revision limited to unused raw fields may change the "
-                "historical raw-file or manifest hash without changing these files."
+                "Raw downloaded files remain exact to their per-download manifest. "
+                "Generated processed bytes and historical hashes are recorded, while "
+                "the tracked semantic commitments require exact structure, dates, "
+                "splits, labels, and missingness plus ten-significant-digit numeric "
+                "equality. Any material processed-data difference is fatal."
             ),
         },
         "mnist": {
