@@ -18,6 +18,12 @@ from typing import Any
 import yaml
 
 from qtyche_qrc.data.semantic_integrity import verify_processed_semantic_integrity
+from qtyche_qrc.reproducibility.orchestrator import (
+    ARTIFACT_REUSE_EXECUTION_MODE,
+    ARTIFACT_REUSE_SOURCE_REPORT,
+    ARTIFACT_REUSE_VALIDATION_REPORT,
+    verify_artifact_reuse_execution,
+)
 from qtyche_qrc.reproducibility.verification import find_repository_root, sha256_path
 
 REQUIRED_FILES = (
@@ -201,16 +207,36 @@ def package_evidence(root: Path, evidence_dir: Path, archive_path: Path) -> dict
     execution = json.loads((evidence_dir / "execution_report.json").read_text(encoding="utf-8"))
     if execution.get("status") != "success":
         raise ValueError("cannot package an unsuccessful execution report")
+    if execution.get("execution_mode") == ARTIFACT_REUSE_EXECUTION_MODE:
+        reuse_missing = [
+            name
+            for name in (ARTIFACT_REUSE_SOURCE_REPORT, ARTIFACT_REUSE_VALIDATION_REPORT)
+            if not (evidence_dir / name).is_file()
+        ]
+        if reuse_missing:
+            raise FileNotFoundError(
+                "artifact-reuse evidence is incomplete: " + ", ".join(reuse_missing)
+            )
+    execution_chain = verify_artifact_reuse_execution(root, evidence_dir)
+    if execution_chain.get("passed") is not True:
+        raise ValueError("execution-report artifact chain verification failed")
+    _write_json(
+        evidence_dir / "execution_chain_verification.json",
+        execution_chain,
+    )
     garch_portability = json.loads(
         (evidence_dir / "garch_portability_report.json").read_text(encoding="utf-8")
     )
     if garch_portability.get("status") != "pass":
         raise ValueError("cannot package evidence without passing GARCH portability checks")
     if full_executed:
+        full_report = json.loads(
+            (evidence_dir / "full_reproduction_report.json").read_text(encoding="utf-8")
+        )
+        if full_report.get("status") != "pass" or full_report.get("failed_comparison_count") != 0:
+            raise ValueError("cannot package full evidence without a zero-failure full comparison")
         mnist_portability = json.loads(
-            (evidence_dir / "mnist_exact_portability_report.json").read_text(
-                encoding="utf-8"
-            )
+            (evidence_dir / "mnist_exact_portability_report.json").read_text(encoding="utf-8")
         )
         if mnist_portability.get("status") != "pass":
             raise ValueError(

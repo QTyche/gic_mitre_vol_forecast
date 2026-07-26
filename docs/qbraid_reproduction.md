@@ -248,6 +248,38 @@ python -m qtyche_qrc.reproducibility.artifacts compare \
   --output qbraid_evidence/final_clean_room/full_reproduction_report.json
 ```
 
+After those corrected reports pass, finalize the execution chain:
+
+```bash
+python scripts/reproduce_phase3.py --finalize-artifact-reuse
+```
+
+This is narrower than normal resumption and is available only for the
+checksum-pinned run that completed every full-tier task before failing at
+`full_comparison`. It:
+
+- preserves the original schema-v1 failure byte-for-byte as
+  `execution_report.pre_artifact_reuse.json`;
+- confirms the scientific execution commit is the artifact commit pinned by
+  the MNIST portability reference and is an ancestor of the clean validation
+  checkout;
+- rejects any Git change outside the explicit reproduction, verification,
+  documentation and regression-test allowlist;
+- rehashes every unique artifact recorded by every completed source task,
+  requiring the exact final identity when a later task intentionally overwrote
+  an earlier task's watched output and recording each such supersession;
+- reruns only frozen verification, the focused tests, GARCH/MNIST path
+  comparison and the final factual comparison;
+- emits `artifact_reuse_validation_report.json` and a successful schema-v2
+  `execution_report.json` with explicit false values for scientific-model and
+  MNIST-reservoir recomputation.
+
+The finalizer fails if any original task was unsuccessful, any artifact is
+missing or changed, the original failure was not solely `full_comparison`, any
+contract report fails, the checkout is dirty, or the validation commit contains
+a scientific-pipeline change. It never treats an obsolete Git/config
+fingerprint as a normal resume match.
+
 The historical raw snapshot declaration is retained exactly. Yahoo currently
 returns revised final digits for SPY’s `adjusted_close` field, which is not used
 by any feature, target, split, threshold, or GARCH return. The evidence package
@@ -328,6 +360,12 @@ size and SHA-256. Missing or changed output forces recomputation. A failed
 subprocess stops the tier, records the nonzero exit status and output tail, and
 never receives successful status.
 
+For the one checksum-pinned failed-at-comparison qBraid run, use
+`--finalize-artifact-reuse` instead of `--full`. A normal `--full` invocation
+at a new commit intentionally invalidates old fingerprints and may recompute
+scientific tasks. Artifact-reuse finalization applies the stricter chain audit
+described above and performs no reservoir computation.
+
 Use this only when recomputation is intentional:
 
 ```bash
@@ -355,6 +393,9 @@ qbraid_evidence/phase3_final_clean_room.tar.gz.sha256
 
 The archive uses normalized tar metadata and a zero gzip timestamp. The archive,
 datasets, model outputs, and feature caches are ignored by Git.
+For a schema-v2 artifact-reuse execution, packaging additionally rehashes the
+source failure report, validation report and every recorded task artifact and
+writes `execution_chain_verification.json` before creating the archive.
 
 ## Expected runtime and resources
 

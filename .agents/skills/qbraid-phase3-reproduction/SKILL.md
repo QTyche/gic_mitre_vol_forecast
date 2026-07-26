@@ -19,6 +19,10 @@ facts while diagnosing reproduction.
    displayed runtime, disk, and memory planning range.
 4. Preserve the default resume behavior. Add `--no-resume` only when the user
    explicitly wants completed, checksum-verified tasks recomputed.
+5. Use `python scripts/reproduce_phase3.py --finalize-artifact-reuse` only for
+   the checksum-pinned full run that completed every scientific task and failed
+   solely at the final comparison. This rehashes all recorded artifacts and
+   reruns only verification, focused tests, and comparisons.
 
 Read [references/contracts.md](references/contracts.md) before running headline
 or full reproduction.
@@ -73,6 +77,11 @@ python scripts/package_qbraid_evidence.py
 
 Report the archive path and SHA-256 sidecar. Never commit downloaded datasets,
 feature caches, model outputs, or the archive.
+For artifact-reuse finalization, require both
+`execution_report.pre_artifact_reuse.json` and
+`artifact_reuse_validation_report.json`. Packaging must independently pass
+`execution_chain_verification.json`; never hand-edit a failed report to
+`success`.
 
 ## Diagnose failures
 
@@ -113,6 +122,13 @@ feature caches, model outputs, or the archive.
   label, preprocessing, seed, architecture, feature, scaler, coefficient,
   optimizer, score, probability, changed-index, confusion-matrix,
   displayed-value, environment, and ranking gates all pass.
+- Completed full run failed only at final comparison: after the MNIST and full
+  comparison reports pass, run
+  `python scripts/reproduce_phase3.py --finalize-artifact-reuse`. It must
+  preserve the original failure, allow only validation changes, rehash every
+  recorded artifact, and record no scientific-model or reservoir
+  recomputation. Do not use normal `--full` resumption across a changed commit
+  because its fingerprints intentionally invalidate.
 
 This project uses classical exact density-matrix simulation and controlled
 finite-shot/noise simulation of a quantum reservoir. It performs no physical

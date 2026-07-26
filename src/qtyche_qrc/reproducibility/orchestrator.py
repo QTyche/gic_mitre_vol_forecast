@@ -26,6 +26,29 @@ from qtyche_qrc.reproducibility.verification import (
 )
 
 TIERS = ("verify", "headline", "full")
+ARTIFACT_REUSE_EXECUTION_MODE = "artifact_reuse_finalization"
+ARTIFACT_REUSE_SOURCE_REPORT = "execution_report.pre_artifact_reuse.json"
+ARTIFACT_REUSE_VALIDATION_REPORT = "artifact_reuse_validation_report.json"
+ARTIFACT_REUSE_ALLOWED_PATHS = frozenset(
+    {
+        ".agents/skills/qbraid-phase3-reproduction/SKILL.md",
+        ".agents/skills/qbraid-phase3-reproduction/references/contracts.md",
+        "README.md",
+        "configs/phase3_reproduction.yaml",
+        "configs/reproduction/mnist_exact_portability_reference.json",
+        "configs/reproduction/mnist_exact_portability_reference.npz",
+        "docs/qbraid_reproduction.md",
+        "scripts/package_qbraid_evidence.py",
+        "scripts/reproduce_phase3.py",
+        "src/qtyche_qrc/reproducibility/artifacts.py",
+        "src/qtyche_qrc/reproducibility/garch_portability.py",
+        "src/qtyche_qrc/reproducibility/mnist_portability.py",
+        "src/qtyche_qrc/reproducibility/orchestrator.py",
+        "src/qtyche_qrc/reproducibility/verification.py",
+        "tests/test_mnist_portability.py",
+        "tests/test_phase3_reproduction.py",
+    }
+)
 
 
 class ReproductionTaskError(RuntimeError):
@@ -158,6 +181,232 @@ def _resume_valid(record: dict[str, Any], *, fingerprint: str, root: Path) -> bo
         ):
             return False
     return True
+
+
+def validate_recorded_artifacts(
+    records: list[dict[str, Any]],
+    *,
+    root: Path,
+) -> dict[str, Any]:
+    """Rehash every recorded artifact without trusting an obsolete task fingerprint."""
+
+    repository = root.resolve()
+    final_identities: dict[str, tuple[int, str, str]] = {}
+    superseded: list[dict[str, Any]] = []
+    record_count = 0
+    for record in records:
+        task_id = str(record.get("task_id", ""))
+        artifacts = record.get("artifacts")
+        if not isinstance(artifacts, list):
+            raise ReproductionVerificationError(f"task {task_id} has no artifact inventory")
+        for artifact in artifacts:
+            if not isinstance(artifact, dict):
+                raise ReproductionVerificationError("invalid recorded artifact entry")
+            relative = Path(str(artifact.get("path", "")))
+            if not relative.parts or relative.is_absolute() or ".." in relative.parts:
+                raise ReproductionVerificationError(f"unsafe recorded artifact path: {relative}")
+            path = (repository / relative).resolve()
+            try:
+                path.relative_to(repository)
+            except ValueError as exc:
+                raise ReproductionVerificationError(
+                    f"recorded artifact escapes repository: {relative}"
+                ) from exc
+            expected = (int(artifact["bytes"]), str(artifact["sha256"]), task_id)
+            key = relative.as_posix()
+            prior = final_identities.get(key)
+            if prior is not None and prior[:2] != expected[:2]:
+                superseded.append(
+                    {
+                        "path": key,
+                        "prior_task_id": prior[2],
+                        "prior_bytes": prior[0],
+                        "prior_sha256": prior[1],
+                        "superseding_task_id": task_id,
+                        "final_bytes": expected[0],
+                        "final_sha256": expected[1],
+                    }
+                )
+            final_identities[key] = expected
+            record_count += 1
+    total_bytes = 0
+    for relative_text, expected in sorted(final_identities.items()):
+        relative = Path(relative_text)
+        path = (repository / relative).resolve()
+        if (
+            not path.is_file()
+            or path.stat().st_size != expected[0]
+            or sha256_path(path) != expected[1]
+        ):
+            raise ReproductionVerificationError(
+                f"final recorded artifact changed or is missing: {relative}"
+            )
+        total_bytes += expected[0]
+    return {
+        "recorded_artifact_entries": record_count,
+        "unique_artifacts": len(final_identities),
+        "unique_artifact_bytes": total_bytes,
+        "superseded_artifact_identity_count": len(superseded),
+        "superseded_artifact_identities": superseded,
+        "all_recorded_artifacts_exact": True,
+    }
+
+
+def _git_is_ancestor(root: Path, ancestor: str, descendant: str) -> bool:
+    return (
+        subprocess.run(
+            ["git", "merge-base", "--is-ancestor", ancestor, descendant],
+            cwd=root,
+            check=False,
+            capture_output=True,
+            text=True,
+        ).returncode
+        == 0
+    )
+
+
+def _git_changed_paths(root: Path, source_commit: str, current_commit: str) -> list[str]:
+    process = subprocess.run(
+        ["git", "diff", "--name-only", f"{source_commit}..{current_commit}"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return sorted(line for line in process.stdout.splitlines() if line)
+
+
+def _git_file_sha256(root: Path, commit: str, relative: str) -> str:
+    process = subprocess.run(
+        ["git", "show", f"{commit}:{relative}"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    )
+    return hashlib.sha256(process.stdout).hexdigest()
+
+
+def validate_artifact_reuse_changed_paths(changed_paths: list[str]) -> list[str]:
+    """Reject artifact reuse when any non-validation implementation changed."""
+
+    normalized = sorted(set(changed_paths))
+    prohibited = sorted(set(normalized) - ARTIFACT_REUSE_ALLOWED_PATHS)
+    if prohibited:
+        raise ReproductionVerificationError(
+            "artifact reuse crosses non-validation changes: " + ", ".join(prohibited)
+        )
+    return normalized
+
+
+def _load_json_object(path: Path) -> dict[str, Any]:
+    value = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(value, dict):
+        raise ReproductionVerificationError(f"expected JSON object: {path}")
+    return dict(value)
+
+
+def _repository_relative_path(root: Path, value: object) -> Path:
+    relative = Path(str(value))
+    if not relative.parts or relative.is_absolute() or ".." in relative.parts:
+        raise ReproductionVerificationError(
+            f"expected a safe repository-relative path, got {relative}"
+        )
+    repository = root.resolve()
+    candidate = (repository / relative).resolve()
+    try:
+        candidate.relative_to(repository)
+    except ValueError as exc:
+        raise ReproductionVerificationError(
+            f"recorded path escapes repository: {relative}"
+        ) from exc
+    return candidate
+
+
+def _artifact_source_commit(config: dict[str, Any], root: Path) -> str:
+    contract = config.get("tolerances", {}).get("mnist_exact_portability", {})
+    reference = root / str(contract.get("reference", ""))
+    expected = str(contract.get("reference_sha256", ""))
+    if not reference.is_file() or sha256_path(reference) != expected:
+        raise ReproductionVerificationError(
+            "MNIST portability reference is missing or not checksum-exact"
+        )
+    value = _load_json_object(reference)
+    return str(value.get("linux_profile", {}).get("artifact_commit", ""))
+
+
+def _validate_source_execution(
+    source: dict[str, Any],
+    *,
+    config: dict[str, Any],
+    config_source: Path,
+    root: Path,
+    current_git: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, Any]]:
+    if (
+        source.get("schema_version") != 1
+        or source.get("status") != "failure"
+        or source.get("tier") != "full"
+    ):
+        raise ReproductionVerificationError(
+            "artifact reuse requires the original failed schema-v1 full execution report"
+        )
+    error = source.get("error")
+    if not isinstance(error, dict) or "task full_comparison failed" not in str(
+        error.get("message", "")
+    ):
+        raise ReproductionVerificationError(
+            "source execution did not fail solely at the final comparison task"
+        )
+    source_git = source.get("git")
+    source_configuration = source.get("configuration")
+    if not isinstance(source_git, dict) or not isinstance(source_configuration, dict):
+        raise ReproductionVerificationError("source execution provenance is incomplete")
+    source_commit = str(source_git.get("commit", ""))
+    current_commit = str(current_git["commit"])
+    required_source_commit = _artifact_source_commit(config, root)
+    if source_commit != required_source_commit:
+        raise ReproductionVerificationError(
+            f"source execution commit {source_commit} is not {required_source_commit}"
+        )
+    if not _git_is_ancestor(root, source_commit, current_commit):
+        raise ReproductionVerificationError(
+            "source execution commit is not an ancestor of the validation commit"
+        )
+    source_config_path = str(source_configuration.get("path", ""))
+    if source_config_path != config_source.relative_to(root).as_posix() or _git_file_sha256(
+        root, source_commit, source_config_path
+    ) != source_configuration.get("sha256"):
+        raise ReproductionVerificationError(
+            "source execution configuration does not match its recorded Git commit"
+        )
+    changed_paths = validate_artifact_reuse_changed_paths(
+        _git_changed_paths(root, source_commit, current_commit)
+    )
+    records = source.get("tasks")
+    if not isinstance(records, list) or not all(isinstance(record, dict) for record in records):
+        raise ReproductionVerificationError("source task records are invalid")
+    source_records = [dict(record) for record in records]
+    expected_ids = [str(task_id) for task_id in config["tiers"]["full"]]
+    actual_ids = [str(record.get("task_id")) for record in source_records]
+    if actual_ids != expected_ids[:-1] or expected_ids[-1] != "full_comparison":
+        raise ReproductionVerificationError(
+            "source execution must contain every full task before full_comparison in order"
+        )
+    if any(
+        record.get("status") != "success" or int(record.get("exit_status", -1)) != 0
+        for record in source_records
+    ):
+        raise ReproductionVerificationError(
+            "a source scientific task was not recorded as successful"
+        )
+    artifacts = validate_recorded_artifacts(source_records, root=root)
+    return source_records, {
+        "source_commit": source_commit,
+        "validation_commit": current_commit,
+        "changed_paths": changed_paths,
+        "all_changes_validation_only": True,
+        **artifacts,
+    }
 
 
 def _write_json(path: Path, payload: Any) -> None:
@@ -401,3 +650,390 @@ def run_reproduction(
                 ],
             )
     return state_path
+
+
+def finalize_artifact_reuse_execution(
+    config_path: Path,
+    *,
+    evidence_dir: Path | None = None,
+) -> Path:
+    """Finalize a full qBraid run after strict revalidation, without model recomputation."""
+
+    root = find_repository_root(config_path)
+    config_source = config_path if config_path.is_absolute() else root / config_path
+    config = load_reproduction_config(config_source)
+    current_git = git_report(root)
+    if not current_git["clean"]:
+        raise ReproductionVerificationError(
+            "artifact-reuse finalization requires a clean Git checkout"
+        )
+    if not current_git["compatible_submission_descendant"]:
+        raise ReproductionVerificationError(
+            "validation commit is not a compatible submission descendant"
+        )
+    configured = root / str(config["study"]["evidence_root"])
+    destination = evidence_dir or configured
+    destination = destination if destination.is_absolute() else root / destination
+    destination = destination.resolve()
+    try:
+        destination.relative_to(root)
+    except ValueError as exc:
+        raise ValueError("evidence directory must remain inside the repository") from exc
+    state_path = destination / "execution_report.json"
+    source_path = destination / ARTIFACT_REUSE_SOURCE_REPORT
+    if source_path.is_file():
+        source = _load_json_object(source_path)
+    else:
+        if not state_path.is_file():
+            raise FileNotFoundError("the failed full execution report is missing")
+        source_bytes = state_path.read_bytes()
+        source = json.loads(source_bytes)
+        if not isinstance(source, dict):
+            raise ReproductionVerificationError("failed execution report is invalid")
+        if source.get("status") != "failure":
+            raise ReproductionVerificationError(
+                "refusing to replace an execution report that is not the original failure"
+            )
+        source_path.write_bytes(source_bytes)
+    source_sha256 = sha256_path(source_path)
+    source_records, artifact_validation = _validate_source_execution(
+        source,
+        config=config,
+        config_source=config_source,
+        root=root,
+        current_git=current_git,
+    )
+    destination.mkdir(parents=True, exist_ok=True)
+    finalization_dir = destination / "artifact_reuse_finalization"
+    finalization_dir.mkdir(parents=True, exist_ok=True)
+    config_checksum = sha256_path(config_source)
+    current_full_tasks = construct_tasks(
+        config,
+        tier="full",
+        root=root,
+        evidence_dir=destination,
+        python_executable=sys.executable,
+    )
+    comparison_task = current_full_tasks[-1]
+    if comparison_task.task_id != "full_comparison":
+        raise ReproductionVerificationError("full_comparison is not the final configured task")
+    lightweight_tasks = (
+        Task(
+            "finalization_frozen_verification",
+            (
+                sys.executable,
+                "-m",
+                "qtyche_qrc.reproducibility.verification",
+                "--root",
+                ".",
+                "--output",
+                (finalization_dir / "fast_verification_report.json").relative_to(root).as_posix(),
+            ),
+            (finalization_dir / "fast_verification_report.json",),
+        ),
+        Task(
+            "finalization_focused_tests",
+            (
+                sys.executable,
+                "-m",
+                "pytest",
+                "-q",
+                "tests/test_phase3_reproduction.py",
+                "tests/test_processed_semantic_integrity.py",
+                "tests/test_garch_portability.py",
+                "tests/test_mnist_portability.py",
+            ),
+            (),
+        ),
+        comparison_task,
+    )
+    started_at = _utc_now()
+    started = time.perf_counter()
+    transcript_path = destination / "terminal_transcript.log"
+    validation_records: list[dict[str, Any]] = []
+    with transcript_path.open("a", encoding="utf-8") as transcript:
+        for task in lightweight_tasks:
+            record = _run_task(
+                task,
+                root=root,
+                transcript=transcript,
+                fingerprint=_fingerprint(task, config_checksum, str(current_git["commit"])),
+            )
+            record["execution"] = "recomputed_validation_only"
+            record["scientific_model_recomputation"] = False
+            validation_records.append(record)
+    comparison_record = validation_records[-1]
+    for name in (
+        "full_reproduction_report.json",
+        "garch_portability_report.json",
+        "mnist_exact_portability_report.json",
+        "processed_data_semantic_verification.json",
+    ):
+        report = _load_json_object(destination / name)
+        if report.get("status") != "pass":
+            raise ReproductionVerificationError(
+                f"artifact-reuse finalization requires passing {name}"
+            )
+    full_report = _load_json_object(destination / "full_reproduction_report.json")
+    if (
+        full_report.get("failed_comparison_count") != 0
+        or full_report.get("mnist_genuine") is not True
+    ):
+        raise ReproductionVerificationError(
+            "full comparison is not a zero-failure genuine-MNIST reproduction"
+        )
+    validation_report_path = destination / ARTIFACT_REUSE_VALIDATION_REPORT
+    validation_report = {
+        "schema_version": 1,
+        "status": "pass",
+        "execution_mode": ARTIFACT_REUSE_EXECUTION_MODE,
+        "validated_at_utc": _utc_now(),
+        "git": current_git,
+        "configuration": {
+            "path": config_source.relative_to(root).as_posix(),
+            "sha256": config_checksum,
+        },
+        "source_execution_report": {
+            "path": source_path.relative_to(root).as_posix(),
+            "sha256": source_sha256,
+            "status": source["status"],
+            "failed_task": "full_comparison",
+        },
+        "compatibility": artifact_validation,
+        "validation_tasks": validation_records,
+        "all_source_artifacts_rehashed": True,
+        "scientific_model_recomputation": False,
+        "mnist_reservoir_recomputation": False,
+        "physical_qpu_execution": False,
+        "quantum_advantage_claim": False,
+    }
+    _write_json(validation_report_path, validation_report)
+    finalized_records: list[dict[str, Any]] = []
+    for source_record in source_records:
+        record = dict(source_record)
+        record["source_execution"] = record.get("execution")
+        record["execution"] = "artifact_reused_checksum_verified"
+        record["artifact_revalidated_at_utc"] = validation_report["validated_at_utc"]
+        record["source_execution_commit"] = artifact_validation["source_commit"]
+        record["scientific_model_recomputation"] = False
+        finalized_records.append(record)
+    finalized_records.append(comparison_record)
+    elapsed = time.perf_counter() - started
+    peak_records = [
+        int(record["peak_child_rss"]) * (1024 if record.get("peak_child_rss_units") == "KiB" else 1)
+        for record in (*finalized_records, *validation_records[:-1])
+        if record.get("peak_child_rss") is not None
+    ]
+    report = {
+        "schema_version": 2,
+        "status": "success",
+        "tier": "full",
+        "execution_mode": ARTIFACT_REUSE_EXECUTION_MODE,
+        "clone_url": CLONE_URL,
+        "started_at_utc": started_at,
+        "completed_at_utc": _utc_now(),
+        "runtime_seconds": elapsed,
+        "effective_compute_runtime_seconds": sum(
+            float(record.get("duration_seconds", 0.0)) for record in finalized_records
+        ),
+        "finalization_runtime_seconds": elapsed,
+        "maximum_peak_child_rss_bytes": max(peak_records) if peak_records else None,
+        "git": current_git,
+        "environment": _environment_report(),
+        "configuration": {
+            "path": config_source.relative_to(root).as_posix(),
+            "sha256": config_checksum,
+        },
+        "scientific_execution": {
+            "git": source["git"],
+            "environment": source["environment"],
+            "configuration": source["configuration"],
+            "started_at_utc": source["started_at_utc"],
+            "completed_at_utc": source["completed_at_utc"],
+            "source_status": source["status"],
+            "source_error": source["error"],
+            "source_report": source_path.relative_to(root).as_posix(),
+            "source_report_sha256": source_sha256,
+        },
+        "artifact_reuse_validation": {
+            "path": validation_report_path.relative_to(root).as_posix(),
+            "sha256": sha256_path(validation_report_path),
+            "status": "pass",
+            "source_artifact_entries": artifact_validation["recorded_artifact_entries"],
+            "source_unique_artifacts": artifact_validation["unique_artifacts"],
+            "validation_task_ids": [record["task_id"] for record in validation_records[:-1]],
+        },
+        "runtime_planning": config["runtime_planning"],
+        "resume_enabled": True,
+        "tasks": finalized_records,
+        "resumed_task_ids": [record["task_id"] for record in source_records],
+        "recomputed_task_ids": ["full_comparison"],
+        "artifact_revalidated_task_ids": [record["task_id"] for record in source_records],
+        "error": None,
+        "physical_qpu_execution": False,
+        "quantum_advantage_claim": False,
+        "synthetic_fallback_permitted": False,
+        "scientific_model_recomputation": False,
+        "mnist_reservoir_recomputation": False,
+    }
+    _write_json(state_path, report)
+    _write_json(destination / "environment_report.json", report["environment"])
+    _write_json(destination / "git_report.json", current_git)
+    _write_json(
+        destination / "command_log.json",
+        [
+            {
+                "task_id": record["task_id"],
+                "command": record["command"],
+                "exit_status": record["exit_status"],
+                "status": record["status"],
+                "execution": record["execution"],
+            }
+            for record in finalized_records
+        ],
+    )
+    return state_path
+
+
+def verify_artifact_reuse_execution(
+    root: Path,
+    evidence_dir: Path,
+) -> dict[str, Any]:
+    """Revalidate a finalized artifact-reuse execution before packaging."""
+
+    execution_path = evidence_dir / "execution_report.json"
+    execution = _load_json_object(execution_path)
+    if execution.get("execution_mode") != ARTIFACT_REUSE_EXECUTION_MODE:
+        return {"applicable": False, "passed": execution.get("status") == "success"}
+    if (
+        execution.get("schema_version") != 2
+        or execution.get("status") != "success"
+        or execution.get("tier") != "full"
+        or execution.get("scientific_model_recomputation") is not False
+        or execution.get("mnist_reservoir_recomputation") is not False
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse execution report has invalid status or safeguards"
+        )
+    current_git = git_report(root)
+    if not current_git["clean"] or execution.get("git", {}).get("commit") != current_git["commit"]:
+        raise ReproductionVerificationError(
+            "artifact-reuse package commit does not match the clean checkout"
+        )
+    config_path = _repository_relative_path(
+        root,
+        execution.get("configuration", {}).get("path", ""),
+    )
+    if not config_path.is_file() or sha256_path(config_path) != execution.get(
+        "configuration", {}
+    ).get("sha256"):
+        raise ReproductionVerificationError("artifact-reuse execution configuration changed")
+    source = execution.get("scientific_execution")
+    validation = execution.get("artifact_reuse_validation")
+    if not isinstance(source, dict) or not isinstance(validation, dict):
+        raise ReproductionVerificationError("artifact-reuse provenance is incomplete")
+    source_path = _repository_relative_path(root, source.get("source_report", ""))
+    validation_path = _repository_relative_path(root, validation.get("path", ""))
+    if (
+        not source_path.is_file()
+        or sha256_path(source_path) != source.get("source_report_sha256")
+        or not validation_path.is_file()
+        or sha256_path(validation_path) != validation.get("sha256")
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse source or validation report checksum mismatch"
+        )
+    validation_report = _load_json_object(validation_path)
+    if (
+        validation_report.get("status") != "pass"
+        or validation_report.get("scientific_model_recomputation") is not False
+        or validation_report.get("mnist_reservoir_recomputation") is not False
+        or validation_report.get("git", {}).get("commit") != current_git["commit"]
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse validation report is not package-eligible"
+        )
+    config = load_reproduction_config(config_path)
+    source_report = _load_json_object(source_path)
+    source_records, source_validation = _validate_source_execution(
+        source_report,
+        config=config,
+        config_source=config_path,
+        root=root,
+        current_git=current_git,
+    )
+    if (
+        source.get("git") != source_report.get("git")
+        or source.get("configuration") != source_report.get("configuration")
+        or validation_report.get("source_execution_report", {}).get("sha256")
+        != source.get("source_report_sha256")
+        or validation_report.get("compatibility") != source_validation
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse source provenance does not match its validation chain"
+        )
+    expected_ids = [str(task_id) for task_id in config["tiers"]["full"]]
+    records = execution.get("tasks")
+    if (
+        not isinstance(records, list)
+        or [str(record.get("task_id")) for record in records if isinstance(record, dict)]
+        != expected_ids
+    ):
+        raise ReproductionVerificationError("artifact-reuse execution task sequence is incomplete")
+    typed_records = [dict(record) for record in records if isinstance(record, dict)]
+    if len(typed_records) != len(records) or any(
+        record.get("status") != "success" or int(record.get("exit_status", -1)) != 0
+        for record in typed_records
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse execution contains an unsuccessful task"
+        )
+    for index, record in enumerate(typed_records):
+        if record.get("scientific_model_recomputation") is not False:
+            raise ReproductionVerificationError(
+                f"task {record.get('task_id')} lacks the no-recomputation safeguard"
+            )
+        if index < len(source_records):
+            if record.get("execution") != "artifact_reused_checksum_verified" or record.get(
+                "source_execution_commit"
+            ) != source_report.get("git", {}).get("commit"):
+                raise ReproductionVerificationError(
+                    f"source task {record.get('task_id')} was not strictly revalidated"
+                )
+        elif (
+            record.get("task_id") != "full_comparison"
+            or record.get("execution") != "recomputed_validation_only"
+        ):
+            raise ReproductionVerificationError(
+                "only full_comparison may be recomputed during artifact reuse"
+            )
+    validation_tasks = validation_report.get("validation_tasks")
+    if not isinstance(validation_tasks, list) or [
+        record.get("task_id") for record in validation_tasks if isinstance(record, dict)
+    ] != [
+        "finalization_frozen_verification",
+        "finalization_focused_tests",
+        "full_comparison",
+    ]:
+        raise ReproductionVerificationError(
+            "artifact-reuse lightweight validation task sequence is incomplete"
+        )
+    if any(
+        not isinstance(record, dict)
+        or record.get("status") != "success"
+        or int(record.get("exit_status", -1)) != 0
+        or record.get("scientific_model_recomputation") is not False
+        for record in validation_tasks
+    ):
+        raise ReproductionVerificationError(
+            "artifact-reuse lightweight validation contains a failed task"
+        )
+    artifacts = validate_recorded_artifacts(typed_records, root=root)
+    return {
+        "applicable": True,
+        "passed": True,
+        "execution_report": execution_path.relative_to(root).as_posix(),
+        "source_report": source_path.relative_to(root).as_posix(),
+        "validation_report": validation_path.relative_to(root).as_posix(),
+        **artifacts,
+    }

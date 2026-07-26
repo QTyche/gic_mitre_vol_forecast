@@ -21,7 +21,10 @@ import yaml
 
 from qtyche_qrc.cli import main as cli_main
 from qtyche_qrc.qbraid import verify_public_pilot_inputs
-from qtyche_qrc.reproducibility.orchestrator import run_reproduction
+from qtyche_qrc.reproducibility.orchestrator import (
+    finalize_artifact_reuse_execution,
+    run_reproduction,
+)
 from qtyche_qrc.runtime import runtime_metadata
 
 PUBLIC_SEEDS = (2026, 2027, 2028)
@@ -283,6 +286,14 @@ def build_parser() -> argparse.ArgumentParser:
     mode.add_argument("--headline", action="store_true", help="reproduce headline evidence")
     mode.add_argument("--full", action="store_true", help="run the complete final pipeline")
     mode.add_argument(
+        "--finalize-artifact-reuse",
+        action="store_true",
+        help=(
+            "rehash a completed failed-at-comparison full run, rerun only verification "
+            "and comparisons, and emit a package-eligible execution report"
+        ),
+    )
+    mode.add_argument(
         "--stage",
         choices=("smoke", "capacity", "public-pilot", "all"),
         help="run a retained legacy Phase 3 pilot stage",
@@ -313,6 +324,26 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     root = Path(__file__).resolve().parents[1]
+    if args.finalize_artifact_reuse:
+        config = args.config if args.config.is_absolute() else root / args.config
+        try:
+            report = finalize_artifact_reuse_execution(
+                config,
+                evidence_dir=args.evidence_dir,
+            )
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(
+            json.dumps(
+                {
+                    "status": "success",
+                    "execution_mode": "artifact_reuse_finalization",
+                    "report": report.relative_to(root).as_posix(),
+                }
+            )
+        )
+        return 0
     tier = (
         "verify" if args.verify else "headline" if args.headline else "full" if args.full else None
     )

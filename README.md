@@ -108,6 +108,23 @@ changed-index, confusion-matrix, displayed-value, and ranking checks. It does
 not widen the global metric tolerance. The paper retains the frozen `0.874`
 and the evidence reports `0.875` explicitly.
 
+When the expensive qBraid full run completed before failing only at its final
+comparison, the tested artifacts can be finalized without another reservoir
+run:
+
+```bash
+python scripts/reproduce_phase3.py --finalize-artifact-reuse
+python scripts/package_qbraid_evidence.py
+```
+
+The finalizer does not change the original failed report in place. It preserves
+that report as `execution_report.pre_artifact_reuse.json`, requires its source
+commit to match the checksum-pinned qBraid artifact profile, permits only the
+enumerated validation-only Git changes, and rehashes every recorded output. It
+then reruns frozen verification, the focused tests, and the full comparison
+only. The schema-v2 successful report explicitly records zero scientific-model
+and MNIST-reservoir recomputation. Packaging revalidates this complete chain.
+
 This is classical exact density-matrix and controlled finite-shot/noise
 simulation of a quantum reservoir. No physical QPU is executed, and no quantum
 advantage is claimed.

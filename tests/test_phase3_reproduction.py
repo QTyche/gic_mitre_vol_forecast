@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import hashlib
 import io
 import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import pytest
 import yaml
@@ -17,6 +18,8 @@ from qtyche_qrc.reproducibility.orchestrator import (
     Task,
     construct_tasks,
     load_reproduction_config,
+    validate_artifact_reuse_changed_paths,
+    validate_recorded_artifacts,
 )
 from qtyche_qrc.reproducibility.verification import (
     CLONE_URL,
@@ -38,10 +41,7 @@ def _root() -> Path:
 
 
 def _config() -> dict[str, Any]:
-    return cast(
-        dict[str, Any],
-        load_reproduction_config(_root() / "configs/phase3_reproduction.yaml"),
-    )
+    return load_reproduction_config(_root() / "configs/phase3_reproduction.yaml")
 
 
 def test_clean_repository_root_detection(tmp_path: Path) -> None:
@@ -241,6 +241,157 @@ def test_partial_resumption_requires_matching_artifact(tmp_path: Path) -> None:
     assert not orchestrator._resume_valid(record, fingerprint="a" * 64, root=root)
 
 
+def test_artifact_reuse_rehashes_every_unique_recorded_output(tmp_path: Path) -> None:
+    artifact = tmp_path / "artifact.json"
+    artifact.write_text('{"status": "success"}\n', encoding="utf-8")
+    identity = {
+        "path": "artifact.json",
+        "bytes": artifact.stat().st_size,
+        "sha256": sha256_path(artifact),
+    }
+    records = [
+        {"task_id": "first", "artifacts": [identity]},
+        {"task_id": "second", "artifacts": [dict(identity)]},
+    ]
+
+    report = validate_recorded_artifacts(records, root=tmp_path)
+
+    assert report["recorded_artifact_entries"] == 2
+    assert report["unique_artifacts"] == 1
+    assert report["all_recorded_artifacts_exact"] is True
+
+    artifact.write_text('{"status": "changed"}\n', encoding="utf-8")
+    with pytest.raises(ReproductionVerificationError, match="changed or is missing"):
+        validate_recorded_artifacts(records, root=tmp_path)
+
+
+def test_artifact_reuse_accepts_only_the_final_identity_after_a_task_overwrite(
+    tmp_path: Path,
+) -> None:
+    artifact = tmp_path / "shared-summary.json"
+    artifact.write_text('{"task": "garch_fit"}\n', encoding="utf-8")
+    first_identity = {
+        "path": artifact.name,
+        "bytes": artifact.stat().st_size,
+        "sha256": sha256_path(artifact),
+    }
+    artifact.write_text('{"task": "garch_comparison"}\n', encoding="utf-8")
+    final_identity = {
+        "path": artifact.name,
+        "bytes": artifact.stat().st_size,
+        "sha256": sha256_path(artifact),
+    }
+
+    report = validate_recorded_artifacts(
+        [
+            {"task_id": "garch_fit", "artifacts": [first_identity]},
+            {"task_id": "garch_comparison", "artifacts": [final_identity]},
+        ],
+        root=tmp_path,
+    )
+
+    assert report["recorded_artifact_entries"] == 2
+    assert report["unique_artifacts"] == 1
+    assert report["superseded_artifact_identity_count"] == 1
+    assert report["superseded_artifact_identities"] == [
+        {
+            "path": artifact.name,
+            "prior_task_id": "garch_fit",
+            "prior_bytes": first_identity["bytes"],
+            "prior_sha256": first_identity["sha256"],
+            "superseding_task_id": "garch_comparison",
+            "final_bytes": final_identity["bytes"],
+            "final_sha256": final_identity["sha256"],
+        }
+    ]
+
+    artifact.write_text('{"task": "unexpected"}\n', encoding="utf-8")
+    with pytest.raises(ReproductionVerificationError, match="changed or is missing"):
+        validate_recorded_artifacts(
+            [
+                {"task_id": "garch_fit", "artifacts": [first_identity]},
+                {"task_id": "garch_comparison", "artifacts": [final_identity]},
+            ],
+            root=tmp_path,
+        )
+
+
+def test_artifact_reuse_allows_only_validation_implementation_changes() -> None:
+    changed = validate_artifact_reuse_changed_paths(
+        [
+            "docs/qbraid_reproduction.md",
+            "src/qtyche_qrc/reproducibility/orchestrator.py",
+            "tests/test_mnist_portability.py",
+        ]
+    )
+
+    assert changed == [
+        "docs/qbraid_reproduction.md",
+        "src/qtyche_qrc/reproducibility/orchestrator.py",
+        "tests/test_mnist_portability.py",
+    ]
+    with pytest.raises(ReproductionVerificationError, match="non-validation"):
+        validate_artifact_reuse_changed_paths(["src/qtyche_qrc/experiments/qrc_mnist.py"])
+
+
+def test_pinned_failed_comparison_source_is_compatible_with_validation_commit() -> None:
+    root = _root()
+    config = _config()
+    reference = json.loads(
+        (root / "configs/reproduction/mnist_exact_portability_reference.json").read_text(
+            encoding="utf-8"
+        )
+    )
+    source_commit = reference["linux_profile"]["artifact_commit"]
+    config_path = root / "configs/phase3_reproduction.yaml"
+    source_config = subprocess.run(
+        ["git", "show", f"{source_commit}:configs/phase3_reproduction.yaml"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+    ).stdout
+    current_commit = subprocess.run(
+        ["git", "rev-parse", "HEAD"],
+        cwd=root,
+        check=True,
+        capture_output=True,
+        text=True,
+    ).stdout.strip()
+    source = {
+        "schema_version": 1,
+        "status": "failure",
+        "tier": "full",
+        "git": {"commit": source_commit},
+        "configuration": {
+            "path": "configs/phase3_reproduction.yaml",
+            "sha256": hashlib.sha256(source_config).hexdigest(),
+        },
+        "error": {"message": "task full_comparison failed with exit status 1"},
+        "tasks": [
+            {
+                "task_id": task_id,
+                "status": "success",
+                "exit_status": 0,
+                "artifacts": [],
+            }
+            for task_id in config["tiers"]["full"][:-1]
+        ],
+    }
+
+    records, report = orchestrator._validate_source_execution(
+        source,
+        config=config,
+        config_source=config_path,
+        root=root,
+        current_git={"commit": current_commit},
+    )
+
+    assert len(records) == len(config["tiers"]["full"]) - 1
+    assert report["source_commit"] == source_commit
+    assert report["validation_commit"] == current_commit
+    assert report["all_changes_validation_only"] is True
+
+
 def test_reproduction_config_preserves_frozen_architecture() -> None:
     original = yaml.safe_load(
         (_root() / "configs/final_financial_qrc.yaml").read_text(encoding="utf-8")
@@ -308,7 +459,15 @@ def test_readme_commands_and_launch_url_match_entry_points() -> None:
         text=True,
     )
     assert process.returncode == 0
-    assert all(option in process.stdout for option in ("--verify", "--headline", "--full"))
+    assert all(
+        option in process.stdout
+        for option in (
+            "--verify",
+            "--headline",
+            "--full",
+            "--finalize-artifact-reuse",
+        )
+    )
 
 
 def test_qbraid_skill_has_required_fields_and_constraints() -> None:
@@ -368,6 +527,11 @@ def test_evidence_package_includes_dataset_checksum_report() -> None:
     assert "passing GARCH portability checks" in source
     assert '"mnist_exact_portability_report.json"' in source
     assert "passing MNIST portability checks" in source
+    assert "verify_artifact_reuse_execution" in source
+    assert "execution_chain_verification.json" in source
+    assert "ARTIFACT_REUSE_EXECUTION_MODE" in source
+    assert "ARTIFACT_REUSE_SOURCE_REPORT" in source
+    assert "ARTIFACT_REUSE_VALIDATION_REPORT" in source
 
 
 def test_fast_verification_pins_the_frozen_scientific_stack() -> None:

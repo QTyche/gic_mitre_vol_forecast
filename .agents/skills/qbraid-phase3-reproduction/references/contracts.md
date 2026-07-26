@@ -20,6 +20,10 @@
 - Full: headline dependencies plus full robustness, genuine-MNIST, Stage 2A,
   Stage 2B, isolated regenerated publication assets, and
   `full_reproduction_report.json`.
+- Artifact-reuse finalization: the original full schema-v1 failure preserved as
+  `execution_report.pre_artifact_reuse.json`, strict
+  `artifact_reuse_validation_report.json`, passing comparison reports and a
+  successful schema-v2 `execution_report.json`.
 
 ## Equality policy
 
@@ -68,6 +72,18 @@ retention of the frozen displayed accuracy. Its report is
 `mnist_exact_portability_report.json`. Eight-decimal feature canonicalization
 only neutralizes `<=6.44e-15` state-generation variation and is paired with the
 downstream full-path gates; it is never applied to model inputs.
+
+The checksum-pinned failed-at-comparison qBraid run may be finalized without
+scientific recomputation only when all prior task records are successful, every
+recorded artifact is rehashed exactly (using the last recorded identity when a
+later ordered task intentionally overwrote a watched output), the source commit matches the pinned
+artifact commit, the clean validation commit changes only enumerated
+reproduction/validation files, and fresh frozen verification, focused tests and
+full comparison pass. Preserve the original failed execution report
+byte-for-byte. The successful schema-v2 report must state that scientific-model
+and MNIST-reservoir recomputation are false. Evidence packaging independently
+revalidates the source report, validation report, full task sequence and every
+recorded artifact.
 
 ## Runtime status
 
