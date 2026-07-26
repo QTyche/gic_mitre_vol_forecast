@@ -30,6 +30,10 @@ REQUIRED_FILES = (
     "processed_data_semantic_verification.json",
     "terminal_transcript.log",
 )
+FULL_REQUIRED_FILES = (
+    "full_reproduction_report.json",
+    "mnist_exact_portability_report.json",
+)
 
 
 def _dataset_checksum_report(root: Path) -> dict[str, Any]:
@@ -189,7 +193,9 @@ def package_evidence(root: Path, evidence_dir: Path, archive_path: Path) -> dict
         evidence_dir / "dataset_checksum_report.json",
         _dataset_checksum_report(root),
     )
-    missing = [name for name in REQUIRED_FILES if not (evidence_dir / name).is_file()]
+    full_executed = (evidence_dir / "full_reproduction_report.json").is_file()
+    required = REQUIRED_FILES + (FULL_REQUIRED_FILES if full_executed else ())
+    missing = [name for name in required if not (evidence_dir / name).is_file()]
     if missing:
         raise FileNotFoundError("evidence directory is incomplete: " + ", ".join(missing))
     execution = json.loads((evidence_dir / "execution_report.json").read_text(encoding="utf-8"))
@@ -200,6 +206,16 @@ def package_evidence(root: Path, evidence_dir: Path, archive_path: Path) -> dict
     )
     if garch_portability.get("status") != "pass":
         raise ValueError("cannot package evidence without passing GARCH portability checks")
+    if full_executed:
+        mnist_portability = json.loads(
+            (evidence_dir / "mnist_exact_portability_report.json").read_text(
+                encoding="utf-8"
+            )
+        )
+        if mnist_portability.get("status") != "pass":
+            raise ValueError(
+                "cannot package full evidence without passing MNIST portability checks"
+            )
     freeze = subprocess.run(
         [sys.executable, "-m", "pip", "freeze", "--all"],
         cwd=root,

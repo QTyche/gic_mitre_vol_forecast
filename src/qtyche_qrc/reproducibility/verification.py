@@ -29,7 +29,7 @@ EXPECTED_CHECKSUMS = {
         "b2afa29a00ae5a1510a22baa2335ba8a5b8e07a3e66f33ca7facc7c9ad484dcd"
     ),
     "configs/phase3_reproduction.yaml": (
-        "9b470a3e32ec7ab77351ca95c3f52b70a4d8135bc316c4d589e7c2311f6ed326"
+        "b9b7d26e5471d7d2492ad6de58af961bc99e55ac641a6694d072e1532e202f38"
     ),
     "configs/reproduction/final_financial_qrc.yaml": (
         "d03d5168a9016c50db4fd38e44c80982f2cd27adaa97f8c47adad09f19e45897"
@@ -39,6 +39,12 @@ EXPECTED_CHECKSUMS = {
     ),
     "configs/reproduction/garch_portability_reference.json": (
         "05e423fdd0f5a9437e26171f9b21d56ad099907a6a377462321a90f61ce8e7f7"
+    ),
+    "configs/reproduction/mnist_exact_portability_reference.json": (
+        "535ee338b4374e05d39719e0874802cbc541cefba82774bee4c03341d1bf294a"
+    ),
+    "configs/reproduction/mnist_exact_portability_reference.npz": (
+        "b4260c80818b2688d67684b515e300f059e7095dcc4df9a2fad7aa5a9b72fcf1"
     ),
     "configs/reproduction/processed_data_semantic_reference.json": (
         "15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11"
@@ -425,6 +431,26 @@ def verify_frozen_repository(
                 "activation": (
                     "Only after the GARCH parameter, likelihood, forecast-path, regime, "
                     "threshold, floor, display, and ranking evidence passes."
+                ),
+            },
+            "mnist_exact_portability": {
+                "reference": (
+                    "configs/reproduction/mnist_exact_portability_reference.json"
+                ),
+                "reference_sha256": (
+                    "535ee338b4374e05d39719e0874802cbc541cefba82774bee4c03341d1bf294a"
+                ),
+                "scope": [
+                    "exact_qrc_mnist_accuracy",
+                    "exact_qrc_mnist_macro_f1",
+                    "exact_qrc_mnist_balanced_accuracy",
+                    "exact_qrc_mnist_macro_roc_auc",
+                ],
+                "numeric_tolerance_widened": False,
+                "activation": (
+                    "Only after exact MNIST identities and the checksum-pinned feature, "
+                    "scaler, readout, objective, score, probability, prediction, confusion, "
+                    "display, and ranking path evidence passes."
                 ),
             },
         },

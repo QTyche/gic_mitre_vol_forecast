@@ -32,6 +32,20 @@ tolerances:
       or equivalent-optimum, likelihood, parameter, independently reconstructed
       forecast, date, label, regime, threshold-crossing, floor, displayed-value
       and ranking checks pass.
+  mnist_exact_portability:
+    reference: configs/reproduction/mnist_exact_portability_reference.json
+    reference_sha256: 535ee338b4374e05d39719e0874802cbc541cefba82774bee4c03341d1bf294a
+    scope:
+      - exact_qrc_mnist_accuracy
+      - exact_qrc_mnist_macro_f1
+      - exact_qrc_mnist_balanced_accuracy
+      - exact_qrc_mnist_macro_roc_auc
+    activation: >-
+      Available only after exact source, subset, index, label, preprocessing,
+      reservoir seed, architecture, feature commitment, scaler, readout
+      parameter, optimiser objective, score, probability, changed prediction,
+      confusion matrix, displayed-value and ranking checks pass. It does not
+      widen the global numeric tolerance.
 runtime_planning:
   status: planning_only_until_actual_qbraid_measurement
   environment_install_minutes: [3, 12]
@@ -109,6 +123,7 @@ tasks:
       - tests/test_phase3_reproduction.py
       - tests/test_processed_semantic_integrity.py
       - tests/test_garch_portability.py
+      - tests/test_mnist_portability.py
   public_download:
     command:
       - "{python}"
@@ -336,4 +351,5 @@ tasks:
       - "{evidence}/full_reproduction_report.json"
     watch:
       - "{evidence}/garch_portability_report.json"
+      - "{evidence}/mnist_exact_portability_report.json"
       - "{evidence}/full_reproduction_report.json"

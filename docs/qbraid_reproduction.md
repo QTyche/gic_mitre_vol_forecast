@@ -174,6 +174,80 @@ optimizer, forecast, classification, threshold, floor, display and ranking
 comparison is written to
 `qbraid_evidence/final_clean_room/garch_portability_report.json`.
 
+### Exact-QRC MNIST readout portability
+
+The full qBraid e0l4 Linux/x86 run used the same four checksum-pinned official
+MNIST files, selected train/validation/test indices, labels, preprocessing,
+reservoir seeds, exact architecture, hyperparameters, and example order as the
+frozen run. The exact reservoir features first differ at `5e-17` to `7e-16`
+and remain within `6.44e-15`. Cross-applying the frozen model to the qBraid
+features, and the qBraid model to the frozen features, changes zero decisions,
+so encoding and exact state generation are not the source of the metric
+difference.
+
+The divergence first becomes decision-relevant in the multinomial
+`LogisticRegression` readout. Its validation-selected `C=10`, `lbfgs`,
+`tol=1e-4` fit operates on scaled feature designs with condition numbers from
+`1.57e5` to `6.41e5`. Platform BLAS and last-bit feature changes stop L-BFGS at
+different iterates. Refitting the same qBraid feature arrays on macOS produces
+a third iterate, confirming that this is a linear-algebra/optimizer portability
+effect. Tightening the solver tolerance stabilizes decisions but changes the
+frozen prediction path and benchmark result, so it is not a permitted
+reproduction correction.
+
+Across all three seeds, the qBraid path differs from the frozen path at 8 of
+3,000 validation and 14 of 3,000 test seed-example decisions. The test
+accuracy changes from frozen `0.874` to qBraid `0.875`; the corresponding
+macro-F1, balanced accuracy, and macro ROC-AUC are
+`0.874688547608332`, `0.875`, and `0.9873911111111111`. The model rankings are
+unchanged.
+
+`configs/reproduction/mnist_exact_portability_reference.json` and its
+checksum-pinned binary reference bundle define
+`mnist_exact_lbfgs_portability_v1`. The contract does not widen the global
+`1e-10` absolute plus `1e-9` relative metric tolerance. A full comparison may
+accept either exact frozen predictions or the observed qBraid e0l4 Linux/x86
+profile only after it verifies:
+
+- exact source checksums, subset and split indices, labels, preprocessing,
+  reservoir seeds, architecture, hyperparameters, row counts, and ordering;
+- every feature-cache shape and checksum self-consistency, an eight-decimal
+  canonical digest for every feature value, and feature/scaler summaries
+  within `1e-12`;
+- the complete readout coefficient and intercept arrays, optimizer objective,
+  gradient and iteration envelope, and validation-only selection;
+- complete validation/test score and probability arrays against bounded,
+  seed-specific paths, plus exact stored-output self-consistency;
+- exact changed positions and official indices, predictions, confusion
+  matrices, and per-seed and aggregate metrics for the accepted profile;
+- the qBraid operating-system and package-version gate, unchanged model
+  rankings, and explicit preservation of the frozen paper value.
+
+The eight-decimal feature digest is a comparison commitment, not a transform
+applied to model inputs. Its permissible last-bit equivalence is independently
+constrained by the scaler, coefficient, objective, score, probability,
+prediction, and confusion-matrix gates, so a materially different feature or
+readout path fails. The complete evidence is written to
+`qbraid_evidence/final_clean_room/mnist_exact_portability_report.json`.
+
+When a full qBraid computation has already completed, rerun only this
+diagnostic against the existing ignored feature caches, models, and prediction
+files:
+
+```bash
+python -m qtyche_qrc.reproducibility.artifacts diagnose-mnist \
+  --output qbraid_evidence/final_clean_room/mnist_exact_portability_report.json
+```
+
+This command performs no reservoir simulation or readout refit. A subsequent
+full comparison can likewise reuse all completed scientific artifacts:
+
+```bash
+python -m qtyche_qrc.reproducibility.artifacts compare \
+  --mode full \
+  --output qbraid_evidence/final_clean_room/full_reproduction_report.json
+```
+
 The historical raw snapshot declaration is retained exactly. Yahoo currently
 returns revised final digits for SPY’s `adjusted_close` field, which is not used
 by any feature, target, split, threshold, or GARCH return. The evidence package
@@ -206,6 +280,7 @@ The main additional report is:
 ```text
 qbraid_evidence/final_clean_room/headline_reproduction_report.json
 qbraid_evidence/final_clean_room/garch_portability_report.json
+qbraid_evidence/final_clean_room/mnist_exact_portability_report.json
 qbraid_evidence/final_clean_room/processed_data_semantic_verification.json
 ```
 
@@ -269,8 +344,9 @@ python scripts/package_qbraid_evidence.py
 
 This adds the package freeze, dataset/checksum report, failures/resolutions
 record, raw byte checks, processed historical/current byte checks, the semantic
-verification report, the required passing GARCH portability report, and
-checksum inventory, then creates:
+verification report, the required passing GARCH portability report, the
+required passing MNIST portability report after a full run, and checksum
+inventory, then creates:
 
 ```text
 qbraid_evidence/phase3_final_clean_room.tar.gz
@@ -319,6 +395,11 @@ not complete.
   classification, threshold, floor, display, and ranking check passes.
 - **MNIST checksum mismatch:** remove only the named IDX gzip and rerun with the
   download path. Never synthesize a replacement.
+- **MNIST exact-QRC aggregate mismatch:** inspect
+  `mnist_exact_portability_report.json`. Do not widen the global tolerance.
+  Acceptance requires an exact frozen profile or the checksum-pinned qBraid
+  e0l4 Linux/x86 feature, readout, score, changed-index, confusion, metric,
+  environment, displayed-value, and ranking path.
 - **Package installed into qBraid base Python:** reactivate the persistent
   environment and confirm `python -m pip --version` points inside it.
 - **Display/font failure:** retain `MPLBACKEND=Agg`; matplotlib creates its own

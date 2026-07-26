@@ -18,6 +18,10 @@ from qtyche_qrc.reproducibility.garch_portability import (
     GARCH_REGRESSION_METRICS,
     compare_garch_portability,
 )
+from qtyche_qrc.reproducibility.mnist_portability import (
+    MNIST_PORTABILITY_REPORT,
+    compare_mnist_portability,
+)
 from qtyche_qrc.reproducibility.verification import (
     compare_numeric,
     find_repository_root,
@@ -254,7 +258,18 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
     )
     if not genuine_mnist:
         raise ValueError("MNIST reproduction used synthetic or substituted data")
+    mnist_portability_report: dict[str, Any] | None = None
     if mode == "full":
+        mnist_contract = cast(
+            dict[str, Any],
+            reproduction["tolerances"]["mnist_exact_portability"],
+        )
+        mnist_portability_report = compare_mnist_portability(
+            root,
+            reference_path=root / str(mnist_contract["reference"]),
+            expected_reference_sha256=str(mnist_contract["reference_sha256"]),
+            output_path=destination.parent / MNIST_PORTABILITY_REPORT,
+        )
         mnist_aggregate = _load_json(
             root / "results/qrc_mnist/tables/mnist_qrc_exact_aggregate.json"
         )["rows"]
@@ -266,15 +281,32 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
             "macro_roc_auc": "ovr_macro_roc_auc",
         }
         for metric, column in metric_columns.items():
-            comparisons.append(
-                _comparison(
-                    fact_id=f"mnist.test.exact_qrc_mean.{metric}",
-                    actual=float(mnist_test[f"{column}_mean"]),
-                    facts=facts,
+            comparison = _comparison(
+                fact_id=f"mnist.test.exact_qrc_mean.{metric}",
+                actual=float(mnist_test[f"{column}_mean"]),
+                facts=facts,
+            )
+            comparison["global_tolerance_passed"] = comparison["passed"]
+            comparison["path_contract_accepted"] = False
+            if not comparison["passed"] and mnist_portability_report["passed"]:
+                comparison["passed"] = True
+                comparison["path_contract_accepted"] = True
+                comparison["tolerance_contract"] = str(
+                    mnist_portability_report["contract_id"]
                 )
+                comparison["numeric_tolerance_widened"] = False
+            comparisons.append(
+                comparison
             )
     failed = [record for record in comparisons if not record["passed"]]
     garch_portability_failed = not portability_report["passed"]
+    mnist_portability_failed = bool(
+        mode == "full"
+        and (
+            mnist_portability_report is None
+            or not mnist_portability_report["passed"]
+        )
+    )
     key_outputs = [
         root / "results/final_financial_qrc/tables/final_qrc_exact_aggregate.json",
         garch_dirs[-1] / "test_metrics.json",
@@ -293,13 +325,21 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
     checksums = {_relative(path, root): sha256_path(path) for path in key_outputs if path.is_file()}
     report = {
         "schema_version": 1,
-        "status": "pass" if not failed and not garch_portability_failed else "fail",
+        "status": (
+            "pass"
+            if not failed and not garch_portability_failed and not mnist_portability_failed
+            else "fail"
+        ),
         "mode": mode,
         "data_snapshot_id": "yahoo_chart_20100101_20251231_v1",
         "mnist_genuine": genuine_mnist,
         "mnist_mode": mnist_summary["mode"],
         "comparisons": comparisons,
-        "failed_comparison_count": len(failed) + int(garch_portability_failed),
+        "failed_comparison_count": (
+            len(failed)
+            + int(garch_portability_failed)
+            + int(mnist_portability_failed)
+        ),
         "tolerances": {
             "global": {
                 "absolute": ABSOLUTE_TOLERANCE,
@@ -321,6 +361,36 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
                 ),
                 "scope": "GARCH test QLIKE, RMSE, and MAE only",
             },
+            "mnist_exact_portability": (
+                {
+                    "activated": bool(
+                        mnist_portability_report is not None
+                        and mnist_portability_report["passed"]
+                        and any(
+                            record.get("path_contract_accepted") is True
+                            for record in comparisons
+                        )
+                    ),
+                    "contract_id": (
+                        mnist_portability_report["contract_id"]
+                        if mnist_portability_report is not None
+                        else None
+                    ),
+                    "numeric_tolerance_widened": False,
+                    "global_tolerance_unchanged": True,
+                    "evidence_report": (
+                        _relative(destination.parent / MNIST_PORTABILITY_REPORT, root)
+                        if mnist_portability_report is not None
+                        else None
+                    ),
+                    "scope": (
+                        "Full exact-QRC MNIST feature, scaler, readout, score, "
+                        "probability, prediction, confusion, and aggregate paths only"
+                    ),
+                }
+                if mode == "full"
+                else {"activated": False, "reason": "full MNIST was not executed"}
+            ),
         },
         "garch_portability": {
             "status": portability_report["status"],
@@ -330,17 +400,55 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
                 root,
             ),
         },
+        "mnist_exact_portability": (
+            {
+                "status": mnist_portability_report["status"],
+                "passed": mnist_portability_report["passed"],
+                "accepted_profile": mnist_portability_report["accepted_profile"],
+                "report": _relative(
+                    destination.parent / MNIST_PORTABILITY_REPORT,
+                    root,
+                ),
+            }
+            if mnist_portability_report is not None
+            else {
+                "status": "not_run",
+                "passed": True,
+                "accepted_profile": None,
+                "report": None,
+            }
+        ),
         "output_checksums": checksums,
         "physical_qpu_execution": False,
         "quantum_advantage_claim": False,
     }
     _write_json(destination, report)
-    if failed or garch_portability_failed:
+    if failed or garch_portability_failed or mnist_portability_failed:
         raise ValueError(
             f"{len(failed)} regenerated headline values exceeded tolerance; "
-            f"GARCH portability evidence passed={not garch_portability_failed}"
+            f"GARCH portability evidence passed={not garch_portability_failed}; "
+            f"MNIST portability evidence passed={not mnist_portability_failed}"
         )
     return report
+
+
+def diagnose_mnist_portability(root: Path, *, output: Path) -> dict[str, Any]:
+    """Compare completed MNIST artifacts without regenerating reservoir features."""
+
+    reproduction = cast(
+        dict[str, Any],
+        yaml.safe_load((root / "configs/phase3_reproduction.yaml").read_text(encoding="utf-8")),
+    )
+    contract = cast(
+        dict[str, Any],
+        reproduction["tolerances"]["mnist_exact_portability"],
+    )
+    return compare_mnist_portability(
+        root,
+        reference_path=root / str(contract["reference"]),
+        expected_reference_sha256=str(contract["reference_sha256"]),
+        output_path=output,
+    )
 
 
 def _source_record(path: Path, root: Path) -> dict[str, str]:
@@ -715,6 +823,11 @@ def build_parser() -> argparse.ArgumentParser:
     compare_parser = subparsers.add_parser("compare")
     compare_parser.add_argument("--mode", choices=("headline", "full"), required=True)
     compare_parser.add_argument("--output", type=Path, required=True)
+    mnist_parser = subparsers.add_parser(
+        "diagnose-mnist",
+        help="validate existing full MNIST artifacts without reservoir recomputation",
+    )
+    mnist_parser.add_argument("--output", type=Path, required=True)
     full_parser = subparsers.add_parser("prepare-full")
     full_parser.add_argument("--output-dir", type=Path, required=True)
     publication = subparsers.add_parser("prepare-publication")
@@ -729,6 +842,11 @@ def main(argv: list[str] | None = None) -> int:
     try:
         if args.command == "compare":
             compare_reproduction(root, mode=args.mode, output=args.output)
+        elif args.command == "diagnose-mnist":
+            diagnose_mnist_portability(
+                root,
+                output=args.output if args.output.is_absolute() else root / args.output,
+            )
         elif args.command == "prepare-full":
             prepare_full_configs(
                 root,

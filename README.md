@@ -91,9 +91,26 @@ tightly bounded parameters and forecast paths, identical dates and regime
 threshold crossings, zero new floors/non-finite values, and unchanged displayed
 values and rankings. The bound is 2.84 times the largest observed qBraid GARCH
 metric delta and is constrained by a separately documented equivalent-optimum
-parameter/forecast envelope. This is classical exact density-matrix and
-controlled finite-shot/noise simulation of a quantum reservoir. No physical
-QPU is executed, and no quantum advantage is claimed.
+parameter/forecast envelope.
+
+The full qBraid Linux/x86 MNIST run also exposed a platform-sensitive
+multinomial L-BFGS readout path. Checksum-identical inputs produced exact
+reservoir features differing by at most `6.44e-15`; applying either already
+fitted model to the other platform's features changed no decisions. Fitting
+the frozen `tol=1e-4` readout on designs with condition numbers from `1.57e5`
+to `6.41e5`, however, stopped at platform-dependent iterates. This changed 8
+validation and 14 test decisions across 6,000 seed-example evaluations and
+changed the mean test accuracy from the frozen `0.874` to `0.875`.
+`mnist_exact_portability_report.json` accepts only the frozen path or the
+checksum-pinned qBraid e0l4 Linux/x86 path after exact source, index, label,
+configuration, feature commitment, selected readout, score, probability,
+changed-index, confusion-matrix, displayed-value, and ranking checks. It does
+not widen the global metric tolerance. The paper retains the frozen `0.874`
+and the evidence reports `0.875` explicitly.
+
+This is classical exact density-matrix and controlled finite-shot/noise
+simulation of a quantum reservoir. No physical QPU is executed, and no quantum
+advantage is claimed.
 
 See [the qBraid clean-room guide](docs/qbraid_reproduction.md) for the evidence
 schema, recovery rules, and full output inventory.

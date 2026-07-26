@@ -155,6 +155,14 @@ def test_numeric_tolerance_is_explicit() -> None:
     garch = config["tolerances"]["garch_regression_portability"]
     assert garch["scope"] == ["qlike", "rmse", "mae"]
     assert sha256_path(_root() / garch["reference"]) == garch["reference_sha256"]
+    mnist = config["tolerances"]["mnist_exact_portability"]
+    assert mnist["scope"] == [
+        "exact_qrc_mnist_accuracy",
+        "exact_qrc_mnist_macro_f1",
+        "exact_qrc_mnist_balanced_accuracy",
+        "exact_qrc_mnist_macro_roc_auc",
+    ]
+    assert sha256_path(_root() / mnist["reference"]) == mnist["reference_sha256"]
 
 
 def test_exact_publication_assets_and_tree_digest() -> None:
@@ -358,6 +366,8 @@ def test_evidence_package_includes_dataset_checksum_report() -> None:
     assert '"provider_revision_detected"' in source
     assert '"garch_portability_report.json"' in source
     assert "passing GARCH portability checks" in source
+    assert '"mnist_exact_portability_report.json"' in source
+    assert "passing MNIST portability checks" in source
 
 
 def test_fast_verification_pins_the_frozen_scientific_stack() -> None:

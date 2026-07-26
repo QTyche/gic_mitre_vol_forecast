@@ -102,6 +102,17 @@ feature caches, model outputs, or the archive.
   validation/test paths, dates, classifications, threshold crossings, floors,
   displayed values, and rankings all pass. Never apply its tolerance to QRC,
   GARCH classification, or publication comparisons.
+- Exact-QRC MNIST aggregate mismatch: inspect
+  `mnist_exact_portability_report.json`. Reuse completed feature caches, models,
+  and prediction files for a comparison-only diagnostic before rerunning
+  reservoirs with
+  `python -m qtyche_qrc.reproducibility.artifacts diagnose-mnist --output
+  qbraid_evidence/final_clean_room/mnist_exact_portability_report.json`. Do not
+  widen the global metric tolerance. Accept only an exact frozen profile or the
+  checksum-pinned qBraid e0l4 Linux/x86 profile after source, split/index,
+  label, preprocessing, seed, architecture, feature, scaler, coefficient,
+  optimizer, score, probability, changed-index, confusion-matrix,
+  displayed-value, environment, and ranking gates all pass.
 
 This project uses classical exact density-matrix simulation and controlled
 finite-shot/noise simulation of a quantum reservoir. It performs no physical

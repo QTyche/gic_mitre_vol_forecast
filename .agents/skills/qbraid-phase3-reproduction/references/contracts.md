@@ -56,6 +56,19 @@ checksum-pinned in
 tolerance or semantic reference without documenting the observed delta and
 scientific justification.
 
+Exact-QRC MNIST metrics do not receive a wider numeric tolerance. The
+checksum-pinned `mnist_exact_lbfgs_portability_v1` contract may accept the
+frozen prediction path or the observed qBraid e0l4 Linux/x86 prediction path
+only. It requires exact MNIST source/subset/index/label/preprocessing/config
+identities; seed-specific feature commitments and scaler summaries; full
+coefficient, intercept, optimizer-objective, score and probability comparisons;
+exact changed indices, predictions, confusion matrices and profile metrics;
+the pinned Linux/x86 package environment; unchanged rankings; and explicit
+retention of the frozen displayed accuracy. Its report is
+`mnist_exact_portability_report.json`. Eight-decimal feature canonicalization
+only neutralizes `<=6.44e-15` state-generation variation and is paired with the
+downstream full-path gates; it is never applied to model inputs.
+
 ## Runtime status
 
 Treat ranges displayed before execution as planning guidance until actual

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Any, cast
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -53,14 +53,11 @@ def _write_json(path: Path, value: Any) -> None:
 
 
 def _numeric_comparison(actual: float, expected: float, tolerance: float) -> dict[str, Any]:
-    return cast(
-        dict[str, Any],
-        compare_numeric(
-            actual,
-            expected,
-            absolute_tolerance=tolerance,
-            relative_tolerance=0.0,
-        ),
+    return compare_numeric(
+        actual,
+        expected,
+        absolute_tolerance=tolerance,
+        relative_tolerance=0.0,
     )
 
 
