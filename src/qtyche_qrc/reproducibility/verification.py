@@ -29,7 +29,7 @@ EXPECTED_CHECKSUMS = {
         "b2afa29a00ae5a1510a22baa2335ba8a5b8e07a3e66f33ca7facc7c9ad484dcd"
     ),
     "configs/phase3_reproduction.yaml": (
-        "2ebbb38e7d0d76fe5f1e0d24698098298aadf6aeb0df4861b48d8055f3cabda0"
+        "93aa718458c5828f12db8956aeb161b9d96640d6066ec0a2fc6043b5eaa8aab0"
     ),
     "configs/reproduction/final_financial_qrc.yaml": (
         "d03d5168a9016c50db4fd38e44c80982f2cd27adaa97f8c47adad09f19e45897"

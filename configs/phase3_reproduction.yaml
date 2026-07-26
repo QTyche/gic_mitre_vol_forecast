@@ -98,6 +98,7 @@ tasks:
       - pytest
       - -q
       - tests/test_phase3_reproduction.py
+      - tests/test_processed_semantic_integrity.py
   public_download:
     command:
       - "{python}"
