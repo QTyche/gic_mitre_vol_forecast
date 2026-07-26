@@ -13,6 +13,11 @@ from typing import Any, cast
 import yaml
 
 from qtyche_qrc.data.semantic_integrity import require_processed_semantic_integrity
+from qtyche_qrc.reproducibility.garch_portability import (
+    GARCH_PORTABILITY_REPORT,
+    GARCH_REGRESSION_METRICS,
+    compare_garch_portability,
+)
 from qtyche_qrc.reproducibility.verification import (
     compare_numeric,
     find_repository_root,
@@ -80,15 +85,19 @@ def _comparison(
     fact_id: str,
     actual: float,
     facts: dict[str, dict[str, Any]],
+    absolute_tolerance: float = ABSOLUTE_TOLERANCE,
+    relative_tolerance: float = RELATIVE_TOLERANCE,
+    tolerance_contract: str = "global_regenerated_metrics",
 ) -> dict[str, Any]:
     expected = float(facts[fact_id]["exact_value"])
     return {
         "fact_id": fact_id,
+        "tolerance_contract": tolerance_contract,
         **compare_numeric(
             actual,
             expected,
-            absolute_tolerance=ABSOLUTE_TOLERANCE,
-            relative_tolerance=RELATIVE_TOLERANCE,
+            absolute_tolerance=absolute_tolerance,
+            relative_tolerance=relative_tolerance,
         ),
     }
 
@@ -156,6 +165,7 @@ def _mnist_run(
 def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, Any]:
     """Compare headline/full regenerated metrics to the frozen facts manifest."""
 
+    destination = output if output.is_absolute() else root / output
     facts = _facts(root)
     comparisons: list[dict[str, Any]] = []
     aggregate = _load_json(
@@ -187,12 +197,48 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
     if not garch_dirs:
         raise FileNotFoundError("full GARCH result is missing")
     garch_metrics = _load_json(garch_dirs[-1] / "test_metrics.json")
+    reproduction = cast(
+        dict[str, Any],
+        yaml.safe_load((root / "configs/phase3_reproduction.yaml").read_text(encoding="utf-8")),
+    )
+    garch_contract = cast(
+        dict[str, Any],
+        reproduction["tolerances"]["garch_regression_portability"],
+    )
+    reference_path = root / str(garch_contract["reference"])
+    portability_report = compare_garch_portability(
+        root,
+        experiment_dir=garch_dirs[-1],
+        reference_path=reference_path,
+        expected_reference_sha256=str(garch_contract["reference_sha256"]),
+        output_path=destination.parent / GARCH_PORTABILITY_REPORT,
+    )
+    special_metric_contract = cast(
+        dict[str, Any],
+        portability_report["comparison_contract"]["regression_metric_tolerance"],
+    )
     for metric in ("macro_f1", "balanced_accuracy", "qlike", "rmse", "mae"):
+        use_garch_contract = metric in GARCH_REGRESSION_METRICS and portability_report["passed"]
         comparisons.append(
             _comparison(
                 fact_id=f"financial.test.garch_1_1.{metric}",
                 actual=float(garch_metrics[metric]),
                 facts=facts,
+                absolute_tolerance=(
+                    float(special_metric_contract["absolute"])
+                    if use_garch_contract
+                    else ABSOLUTE_TOLERANCE
+                ),
+                relative_tolerance=(
+                    float(special_metric_contract["relative"])
+                    if use_garch_contract
+                    else RELATIVE_TOLERANCE
+                ),
+                tolerance_contract=(
+                    str(portability_report["contract_id"])
+                    if use_garch_contract
+                    else "global_regenerated_metrics"
+                ),
             )
         )
     mnist_summary = _load_json(root / "results/qrc_mnist/run_summary.json")
@@ -228,6 +274,7 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
                 )
             )
     failed = [record for record in comparisons if not record["passed"]]
+    garch_portability_failed = not portability_report["passed"]
     key_outputs = [
         root / "results/final_financial_qrc/tables/final_qrc_exact_aggregate.json",
         garch_dirs[-1] / "test_metrics.json",
@@ -246,29 +293,53 @@ def compare_reproduction(root: Path, *, mode: str, output: Path) -> dict[str, An
     checksums = {_relative(path, root): sha256_path(path) for path in key_outputs if path.is_file()}
     report = {
         "schema_version": 1,
-        "status": "pass" if not failed else "fail",
+        "status": "pass" if not failed and not garch_portability_failed else "fail",
         "mode": mode,
         "data_snapshot_id": "yahoo_chart_20100101_20251231_v1",
         "mnist_genuine": genuine_mnist,
         "mnist_mode": mnist_summary["mode"],
         "comparisons": comparisons,
-        "failed_comparison_count": len(failed),
+        "failed_comparison_count": len(failed) + int(garch_portability_failed),
         "tolerances": {
-            "absolute": ABSOLUTE_TOLERANCE,
-            "relative": RELATIVE_TOLERANCE,
-            "justification": (
-                "Cross-platform BLAS/SciPy final-digit variation only; tracked files and "
-                "dataset identities remain checksum-exact."
+            "global": {
+                "absolute": ABSOLUTE_TOLERANCE,
+                "relative": RELATIVE_TOLERANCE,
+                "unchanged": True,
+                "justification": (
+                    "The original QRC, GARCH-classification, MNIST, and publication "
+                    "comparison contract remains unchanged; tracked files and dataset "
+                    "identities remain checksum-exact."
+                ),
+            },
+            "garch_regression_portability": {
+                **special_metric_contract,
+                "activated": portability_report["passed"],
+                "contract_id": portability_report["contract_id"],
+                "evidence_report": _relative(
+                    destination.parent / GARCH_PORTABILITY_REPORT,
+                    root,
+                ),
+                "scope": "GARCH test QLIKE, RMSE, and MAE only",
+            },
+        },
+        "garch_portability": {
+            "status": portability_report["status"],
+            "passed": portability_report["passed"],
+            "report": _relative(
+                destination.parent / GARCH_PORTABILITY_REPORT,
+                root,
             ),
         },
         "output_checksums": checksums,
         "physical_qpu_execution": False,
         "quantum_advantage_claim": False,
     }
-    destination = output if output.is_absolute() else root / output
     _write_json(destination, report)
-    if failed:
-        raise ValueError(f"{len(failed)} regenerated headline values exceeded tolerance")
+    if failed or garch_portability_failed:
+        raise ValueError(
+            f"{len(failed)} regenerated headline values exceeded tolerance; "
+            f"GARCH portability evidence passed={not garch_portability_failed}"
+        )
     return report
 
 

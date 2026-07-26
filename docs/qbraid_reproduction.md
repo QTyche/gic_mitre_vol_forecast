@@ -129,10 +129,50 @@ The orchestrator:
 8. downloads checksum-pinned official MNIST and runs the genuine smoke subset;
 9. compares financial QRC and GARCH headline values with the Stage 2C facts.
 
-No task can fall back to fixtures or generated digits. Floating comparisons use
-absolute tolerance `1e-10` plus relative tolerance `1e-9`. This covers
-final-digit differences across BLAS, SciPy, and CPU implementations; it does
-not relax model outputs, tracked config, or publication checksums.
+No task can fall back to fixtures or generated digits. The global floating
+comparison remains absolute tolerance `1e-10` plus relative tolerance `1e-9`
+for QRC, GARCH classification, and publication comparisons. It does not relax
+model outputs, tracked config, or publication checksums.
+
+The qBraid Linux/x86 fit reproduced GARCH macro-F1 and balanced accuracy
+exactly, while test QLIKE, RMSE, and MAE differed by
+`8.792821493130987e-8`, `6.647243633306488e-8`, and
+`4.137040631943534e-8`. The frozen eight-start fit has six converged starts
+within `2e-8` negative log-likelihood of the selected optimum. Across those
+equivalent starts, all validation/test regime assignments remain identical;
+the largest forecast-path differences are `9.29e-6` absolute and `1.63e-5`
+relative.
+
+`configs/reproduction/garch_portability_reference.json` therefore defines a
+GARCH-only contract. Before a `2.5e-7` absolute, zero-relative tolerance can be
+used for test QLIKE, RMSE, and MAE, the evidence must prove:
+
+- successful convergence from the frozen deterministic start grid, using the
+  same selected start or an equivalent optimum;
+- training log-likelihood within `1e-7`, iteration-count difference at most
+  15, and absolute parameter bounds of `2e-10` for omega, `5e-6` for alpha,
+  `2e-6` for beta, `1e-8` for mu, `5e-6` for alpha plus beta, and `2e-8` for
+  unconditional variance;
+- candidate prediction files match forecasts independently reconstructed from
+  the candidate parameters within `1e-12`;
+- exact row counts, dates, labels, regime assignments and threshold crossings,
+  with zero new non-finite or floored predictions;
+- per-split forecast maximum/mean/median absolute differences no greater than
+  `2e-5`/`1e-6`/`5e-7`, and maximum relative difference no greater than
+  `5e-5`;
+- unchanged displayed paper values and model rankings.
+
+The frozen comparison path is reconstructed from the frozen parameters on the
+same checksum- and semantic-verified return stream used by the candidate. This
+isolates optimizer differences from the separately gated processed-data
+serialization differences.
+
+The limits are rounded upward from the equivalent-start parameter and
+prediction envelope with documented safety margins. A materially different fit
+cannot gain access to the GARCH metric tolerance. The complete parameter,
+optimizer, forecast, classification, threshold, floor, display and ranking
+comparison is written to
+`qbraid_evidence/final_clean_room/garch_portability_report.json`.
 
 The historical raw snapshot declaration is retained exactly. Yahoo currently
 returns revised final digits for SPY’s `adjusted_close` field, which is not used
@@ -165,6 +205,7 @@ The main additional report is:
 
 ```text
 qbraid_evidence/final_clean_room/headline_reproduction_report.json
+qbraid_evidence/final_clean_room/garch_portability_report.json
 qbraid_evidence/final_clean_room/processed_data_semantic_verification.json
 ```
 
@@ -228,7 +269,8 @@ python scripts/package_qbraid_evidence.py
 
 This adds the package freeze, dataset/checksum report, failures/resolutions
 record, raw byte checks, processed historical/current byte checks, the semantic
-verification report, and checksum inventory, then creates:
+verification report, the required passing GARCH portability report, and
+checksum inventory, then creates:
 
 ```text
 qbraid_evidence/phase3_final_clean_room.tar.gz
@@ -269,7 +311,12 @@ not complete.
   download and rerun. Never replace the snapshot with fixture data.
 - **Historical raw SPY hash differs but processed hashes pass:** retain the
   recorded provider-revision warning. Do not edit the download to force a raw
-  hash; the six frozen processed checksums remain the scientific gate.
+  hash; the exact per-download raw manifest and tracked processed semantic
+  commitments remain the scientific gates.
+- **GARCH-only regression mismatch:** inspect
+  `garch_portability_report.json`. The special tolerance is unavailable unless
+  every optimizer, likelihood, parameter, reconstructed-path, alignment,
+  classification, threshold, floor, display, and ranking check passes.
 - **MNIST checksum mismatch:** remove only the named IDX gzip and rerun with the
   download path. Never synthesize a replacement.
 - **Package installed into qBraid base Python:** reactivate the persistent

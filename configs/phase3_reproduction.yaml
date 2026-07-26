@@ -20,9 +20,18 @@ tolerances:
     absolute: 1.0e-10
     relative: 1.0e-9
     justification: >-
-      Floating-point readouts and GARCH optimisation can differ in final digits
-      across BLAS, SciPy and CPU implementations. Dataset, configuration and
-      tracked publication files use exact SHA-256 equality.
+      Floating-point QRC readouts can differ in final digits across BLAS and CPU
+      implementations. Dataset, configuration and tracked publication files use
+      exact SHA-256 equality.
+  garch_regression_portability:
+    reference: configs/reproduction/garch_portability_reference.json
+    reference_sha256: 05e423fdd0f5a9437e26171f9b21d56ad099907a6a377462321a90f61ce8e7f7
+    scope: [qlike, rmse, mae]
+    activation: >-
+      Available only after the candidate GARCH convergence, deterministic-start
+      or equivalent-optimum, likelihood, parameter, independently reconstructed
+      forecast, date, label, regime, threshold-crossing, floor, displayed-value
+      and ranking checks pass.
 runtime_planning:
   status: planning_only_until_actual_qbraid_measurement
   environment_install_minutes: [3, 12]
@@ -99,6 +108,7 @@ tasks:
       - -q
       - tests/test_phase3_reproduction.py
       - tests/test_processed_semantic_integrity.py
+      - tests/test_garch_portability.py
   public_download:
     command:
       - "{python}"
@@ -269,7 +279,9 @@ tasks:
       - headline
       - --output
       - "{evidence}/headline_reproduction_report.json"
-    watch: ["{evidence}/headline_reproduction_report.json"]
+    watch:
+      - "{evidence}/garch_portability_report.json"
+      - "{evidence}/headline_reproduction_report.json"
   prepare_full_configs:
     command:
       - "{python}"
@@ -322,4 +334,6 @@ tasks:
       - full
       - --output
       - "{evidence}/full_reproduction_report.json"
-    watch: ["{evidence}/full_reproduction_report.json"]
+    watch:
+      - "{evidence}/garch_portability_report.json"
+      - "{evidence}/full_reproduction_report.json"

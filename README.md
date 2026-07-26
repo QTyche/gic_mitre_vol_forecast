@@ -83,9 +83,17 @@ Ten-significant-digit canonicalization has a relative quantization width at most
 `1e-9`; non-finite values are rejected, and any material value, threshold,
 date, label, split, missingness, row, or schema change is fatal. Regenerated
 metrics separately use a declared `1e-10` absolute plus `1e-9` relative
-tolerance. This is classical exact density-matrix and controlled
-finite-shot/noise simulation of a quantum reservoir. No physical QPU is
-executed, and no quantum advantage is claimed.
+tolerance. That global tolerance remains unchanged for QRC, GARCH
+classification, and publication comparisons. GARCH test QLIKE, RMSE, and MAE
+have a separate `2.5e-7` absolute-only portability bound, activated only after
+`garch_portability_report.json` proves converged equivalent likelihood,
+tightly bounded parameters and forecast paths, identical dates and regime
+threshold crossings, zero new floors/non-finite values, and unchanged displayed
+values and rankings. The bound is 2.84 times the largest observed qBraid GARCH
+metric delta and is constrained by a separately documented equivalent-optimum
+parameter/forecast envelope. This is classical exact density-matrix and
+controlled finite-shot/noise simulation of a quantum reservoir. No physical
+QPU is executed, and no quantum advantage is claimed.
 
 See [the qBraid clean-room guide](docs/qbraid_reproduction.md) for the evidence
 schema, recovery rules, and full output inventory.

@@ -5,7 +5,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 import yaml
@@ -38,7 +38,10 @@ def _root() -> Path:
 
 
 def _config() -> dict[str, Any]:
-    return load_reproduction_config(_root() / "configs/phase3_reproduction.yaml")
+    return cast(
+        dict[str, Any],
+        load_reproduction_config(_root() / "configs/phase3_reproduction.yaml"),
+    )
 
 
 def test_clean_repository_root_detection(tmp_path: Path) -> None:
@@ -146,6 +149,12 @@ def test_numeric_tolerance_is_explicit() -> None:
     assert inside["passed"] is True
     assert outside["passed"] is False
     assert outside["absolute_difference"] > outside["permitted_difference"]
+    config = _config()
+    assert config["tolerances"]["regenerated_metrics"]["absolute"] == 1e-10
+    assert config["tolerances"]["regenerated_metrics"]["relative"] == 1e-9
+    garch = config["tolerances"]["garch_regression_portability"]
+    assert garch["scope"] == ["qlike", "rmse", "mae"]
+    assert sha256_path(_root() / garch["reference"]) == garch["reference_sha256"]
 
 
 def test_exact_publication_assets_and_tree_digest() -> None:
@@ -347,6 +356,8 @@ def test_evidence_package_includes_dataset_checksum_report() -> None:
     assert '"processed_model_inputs_semantically_exact"' in source
     assert '"processed_semantic_verification"' in source
     assert '"provider_revision_detected"' in source
+    assert '"garch_portability_report.json"' in source
+    assert "passing GARCH portability checks" in source
 
 
 def test_fast_verification_pins_the_frozen_scientific_stack() -> None:

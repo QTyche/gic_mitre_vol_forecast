@@ -29,13 +29,16 @@ EXPECTED_CHECKSUMS = {
         "b2afa29a00ae5a1510a22baa2335ba8a5b8e07a3e66f33ca7facc7c9ad484dcd"
     ),
     "configs/phase3_reproduction.yaml": (
-        "93aa718458c5828f12db8956aeb161b9d96640d6066ec0a2fc6043b5eaa8aab0"
+        "9b470a3e32ec7ab77351ca95c3f52b70a4d8135bc316c4d589e7c2311f6ed326"
     ),
     "configs/reproduction/final_financial_qrc.yaml": (
         "d03d5168a9016c50db4fd38e44c80982f2cd27adaa97f8c47adad09f19e45897"
     ),
     "configs/reproduction/garch_baseline.yaml": (
         "76d5eef56621f77b1aa3c115ef701f66c8f843c2170a559bdf3896f192c1f1bd"
+    ),
+    "configs/reproduction/garch_portability_reference.json": (
+        "05e423fdd0f5a9437e26171f9b21d56ad099907a6a377462321a90f61ce8e7f7"
     ),
     "configs/reproduction/processed_data_semantic_reference.json": (
         "15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11"
@@ -408,12 +411,22 @@ def verify_frozen_repository(
             "equality."
         ),
         "numeric_tolerance_policy": {
-            "absolute_tolerance": 1e-10,
-            "relative_tolerance": 1e-9,
-            "justification": (
-                "Regenerated floating-point metrics may vary at final digits across BLAS, "
-                "SciPy, and CPU implementations; dataset, config, and display files remain exact."
-            ),
+            "global": {
+                "absolute_tolerance": 1e-10,
+                "relative_tolerance": 1e-9,
+                "unchanged": True,
+            },
+            "garch_regression_portability": {
+                "reference": "configs/reproduction/garch_portability_reference.json",
+                "reference_sha256": (
+                    "05e423fdd0f5a9437e26171f9b21d56ad099907a6a377462321a90f61ce8e7f7"
+                ),
+                "scope": ["qlike", "rmse", "mae"],
+                "activation": (
+                    "Only after the GARCH parameter, likelihood, forecast-path, regime, "
+                    "threshold, floor, display, and ranking evidence passes."
+                ),
+            },
         },
         "physical_qpu_execution": False,
         "quantum_advantage_claim": False,

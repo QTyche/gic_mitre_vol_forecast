@@ -25,6 +25,7 @@ REQUIRED_FILES = (
     "dataset_checksum_report.json",
     "environment_report.json",
     "execution_report.json",
+    "garch_portability_report.json",
     "git_report.json",
     "processed_data_semantic_verification.json",
     "terminal_transcript.log",
@@ -194,6 +195,11 @@ def package_evidence(root: Path, evidence_dir: Path, archive_path: Path) -> dict
     execution = json.loads((evidence_dir / "execution_report.json").read_text(encoding="utf-8"))
     if execution.get("status") != "success":
         raise ValueError("cannot package an unsuccessful execution report")
+    garch_portability = json.loads(
+        (evidence_dir / "garch_portability_report.json").read_text(encoding="utf-8")
+    )
+    if garch_portability.get("status") != "pass":
+        raise ValueError("cannot package evidence without passing GARCH portability checks")
     freeze = subprocess.run(
         [sys.executable, "-m", "pip", "freeze", "--all"],
         cwd=root,

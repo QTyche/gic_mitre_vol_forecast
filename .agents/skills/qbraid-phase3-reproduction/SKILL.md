@@ -96,6 +96,12 @@ feature caches, model outputs, or the archive.
   resumption.
 - Numeric comparison failure: inspect the recorded actual, expected, absolute
   difference, and declared tolerance. Do not widen tolerances silently.
+- GARCH regression-only mismatch: inspect `garch_portability_report.json`.
+  Permit the GARCH-only contract only when convergence, deterministic-start or
+  equivalent-optimum likelihood, parameters, independently reconstructed
+  validation/test paths, dates, classifications, threshold crossings, floors,
+  displayed values, and rankings all pass. Never apply its tolerance to QRC,
+  GARCH classification, or publication comparisons.
 
 This project uses classical exact density-matrix simulation and controlled
 finite-shot/noise simulation of a quantum reservoir. It performs no physical

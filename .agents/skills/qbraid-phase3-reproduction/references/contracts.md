@@ -14,8 +14,9 @@
 
 - Verify: `fast_verification_report.json`, `execution_report.json`,
   environment/Git reports, command log, and transcript.
-- Headline: verify outputs plus `headline_reproduction_report.json` and normal
-  ignored financial, GARCH, baseline, and MNIST-smoke outputs.
+- Headline: verify outputs plus `headline_reproduction_report.json`,
+  `garch_portability_report.json`, and normal ignored financial, GARCH,
+  baseline, and MNIST-smoke outputs.
 - Full: headline dependencies plus full robustness, genuine-MNIST, Stage 2A,
   Stage 2B, isolated regenerated publication assets, and
   `full_reproduction_report.json`.
@@ -37,10 +38,23 @@ zero is normalized and non-finite data are rejected. This covers platform
 last-bit differences in `log` and reductions without accepting material data
 changes.
 
-Regenerated metrics use absolute tolerance `1e-10` plus relative tolerance
-`1e-9` because BLAS, SciPy, and CPU implementations can change final floating
-digits. Never change a tolerance or semantic reference without documenting the
-observed delta and scientific justification.
+The global regenerated-metric contract remains absolute tolerance `1e-10` plus
+relative tolerance `1e-9`. It applies to QRC, GARCH classification, and
+publication comparisons.
+
+GARCH test QLIKE, RMSE, and MAE may use the separate
+`garch_optimizer_portability_v1` absolute tolerance of `2.5e-7` only after
+`garch_portability_report.json` passes. That report requires successful
+convergence, a frozen deterministic start or equivalent optimum, likelihood
+within `1e-7`, bounded optimizer iterations and parameters, independent
+candidate-path reconstruction within `1e-12`, exact dates/labels/regime
+assignments/threshold crossings/floor counts, bounded forecast differences,
+and unchanged displayed values and rankings. The parameter and forecast bounds,
+observed qBraid deltas, equivalent-start envelope, and safety margins are
+checksum-pinned in
+`configs/reproduction/garch_portability_reference.json`. Never change a
+tolerance or semantic reference without documenting the observed delta and
+scientific justification.
 
 ## Runtime status
 
