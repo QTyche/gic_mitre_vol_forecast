@@ -4,12 +4,16 @@ set -euo pipefail
 submission_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$submission_dir"
 
-# Pin PDF metadata to the validated source commit time for byte-stable rebuilds.
-export SOURCE_DATE_EPOCH=1785068776
+# Pin PDF metadata to the final Stage 3A base commit time for byte-stable rebuilds.
+export SOURCE_DATE_EPOCH=1785078432
 export FORCE_SOURCE_DATE=1
 export TZ=UTC
 
-python3 prepare_assets.py
+if command -v uv >/dev/null 2>&1; then
+  uv run python prepare_assets.py
+else
+  python3 prepare_assets.py
+fi
 mkdir -p build
 
 if command -v latexmk >/dev/null 2>&1; then

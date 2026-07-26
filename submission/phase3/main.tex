@@ -43,6 +43,25 @@ Volatility Regime Transitions}}
 Submission $\cdot$ Track A}
 \end{center}
 
+% SOURCE: paper_assets/tables/publication_table_2_financial_benchmark.json :: rows[model=QRC mean].macro_f1
+% SOURCE: paper_assets/tables/publication_table_2_financial_benchmark.json :: rows[model=QRC mean].transition_pr_auc
+% SOURCE: paper_assets/tables/publication_table_2_financial_benchmark.json :: rows[model=QRC mean].qlike
+% SOURCE: paper_assets/tables/publication_table_3_mnist_benchmark.json :: rows[model_or_condition=Exact QRC mean].accuracy
+% SOURCE: paper_assets/tables/publication_table_3_mnist_benchmark.json :: rows[model_or_condition=Size-controlled ESN].accuracy
+% SOURCE: qbraid_evidence/final_clean_room/headline_reproduction_report.json :: status,comparisons,failed_comparison_count
+\begin{abstract}
+We evaluate a compact exact-simulation quantum reservoir computer for
+five-day equity-volatility regime classification and realised-variance
+forecasting against persistence, logistic-regression, Echo State Network and
+GARCH baselines. The QRC achieves test macro-F1 of 0.454, transition PR-AUC of
+0.640 and QLIKE of \(-2.814\), but does not consistently outperform the
+strongest classical methods. On genuine MNIST it achieves mean accuracy of
+0.874, compared with 0.934 for the ESN. Independent qBraid reproduction
+confirms the findings, with narrowly characterised platform-sensitive solver
+variation. The study establishes reproducibility and competitive behaviour,
+not quantum advantage.
+\end{abstract}
+
 \section{Introduction and contribution}
 
 Volatility regimes influence risk limits, hedging and execution, while
@@ -53,12 +72,11 @@ forecasting its continuous magnitude. Reservoir computing is attractive
 because a fixed nonlinear dynamical system can expose a rich feature map while
 training only a classical readout \cite{jaeger2001echo,fujii2017harnessing}.
 
-We evaluate rather than assume the value of a compact quantum reservoir. The
-study combines leakage-safe, validation-only architecture selection; complete
-classical controls; controlled finite-shot/noise analysis; formal paired
-statistics; a genuine-MNIST benchmark; and independent qBraid clean-room
-reproduction. All quantum states are produced by exact classical simulation.
-The aim is a transparent account of when the selected QRC is competitive, not
+We test the value of a compact quantum reservoir through leakage-safe,
+validation-only architecture selection, a broad set of strong classical
+controls, controlled finite-shot/noise analysis, paired statistics, genuine
+MNIST and independent qBraid clean-room reproduction. All quantum states are
+produced by exact classical simulation; the aim is transparent comparison, not
 a claim of quantum advantage.
 
 \section{Data, targets and evaluation protocol}
@@ -166,28 +184,33 @@ same dates and target definitions.
 % SOURCE: paper_assets/tables/publication_table_2_financial_benchmark.json :: rows
 \input{tables/financial_results.tex}
 
-The QRC is competitive in selected dimensions but does not dominate.
-% SOURCE: paper_assets/final_results_manifest.json :: financial.test
-Logistic regression leads regime classification (macro-F1 0.526 versus QRC
-0.454); GARCH leads QLIKE (\(-2.895\) versus \(-2.814\)); and ESN leads RMSE
-(0.0662 versus 0.0894) and MAE (0.0183 versus 0.0216). QRC attains the highest
-listed forecast correlation (0.543) and a transition PR-AUC of 0.640, but
-point-estimate leadership on one metric is not systematic superiority.
-
-% SOURCE: paper_assets/figures/publication_figure_2_financial_comparison.pdf
+% SOURCE: submission/phase3/asset_manifest.json :: assets[figure_or_table_number=Figure 2]
+% SOURCE: paper_assets/tables/publication_table_2_financial_benchmark.json :: rows
+% SOURCE: paper_assets/final_results_manifest.json :: financial.inference
 % SOURCE: paper_assets/figure_captions.md :: caption 2
 \begin{center}
 \begin{minipage}{\linewidth}
 \centering
-\includegraphics[width=0.97\linewidth]{figures/financial_comparison.pdf}
+\includegraphics[width=\linewidth]{figures/financial_comparison.pdf}
 \par\smallskip
 {\small\textbf{Figure 2:} Frozen financial test estimates and selected architecture-level
 95\% intervals for QRC-minus-baseline differences. Filled markers denote
 Holm-adjusted support and hollow markers do not. QRC statistics average paired
 per-seed differences, not prediction ensembles. Logistic leads macro-F1,
-GARCH leads QLIKE and ESN leads RMSE.\par}
+GARCH leads QLIKE and ESN leads RMSE. The persistence transition annotation
+uses the finite two-sided resolution of 10,000 strict empirical resamples
+rather than displaying \(p=0\).\par}
 \end{minipage}
 \end{center}
+
+The QRC is competitive in selected dimensions but does not dominate.
+% SOURCE: paper_assets/final_results_manifest.json :: financial.test
+Logistic regression leads regime classification (macro-F1 0.526 versus QRC
+0.454); GARCH leads QLIKE (\(-2.895\) versus \(-2.814\)); and ESN leads RMSE
+(0.0662 versus 0.0894) and MAE (0.0183 versus 0.0216). QRC attains the highest
+correlation among the evaluated forecasters (0.543) and a transition PR-AUC of
+0.640, but point-estimate leadership on one metric is not systematic
+superiority.
 
 % SOURCE: paper_assets/final_results_manifest.json :: financial.inference
 Formal tests use 10,000 paired replicates. Financial losses use a
@@ -198,8 +221,9 @@ within paired circular blocks. Holm correction is applied within predeclared
 metric families. QRC-minus-logistic macro-F1 is \(-0.0726\)
 (95\% interval \([-0.1223,-0.0202]\), adjusted \(p=0.0168\)).
 QRC exceeds regime persistence in transition PR-AUC by 0.1289
-(95\% interval \([0.0733,0.1880]\), adjusted resampling \(p=0\) at the
-10,000-replicate resolution).
+(95\% interval \([0.0733,0.1880]\)); no opposing-sign difference occurred in
+10,000 paired draws, so the Holm-adjusted empirical result is reported at its
+finite two-sided resolution (\(p<2\times10^{-4}\)), never as exactly zero.
 No QRC-versus-ESN financial classification metric, nor any financial
 regression architecture comparison, is Holm-significant. Failure to reject is
 not evidence of equivalence.
@@ -236,12 +260,13 @@ probability 0.01, and 0.485 with measurement-flip probability 0.02. These
 controlled simulations show finite-shot/noise sensitivity, not physical-device
 performance \cite{chen2020temporal}.
 
-% SOURCE: paper_assets/figures/publication_figure_4_mnist_benchmark.pdf
+% SOURCE: submission/phase3/asset_manifest.json :: assets[figure_or_table_number=Figure 3]
+% SOURCE: paper_assets/tables/publication_table_3_mnist_benchmark.json :: rows
 % SOURCE: paper_assets/figure_captions.md :: caption 4
 \begin{center}
 \begin{minipage}{\linewidth}
 \centering
-\includegraphics[width=0.92\linewidth]{figures/mnist_benchmark.pdf}
+\includegraphics[width=\linewidth]{figures/mnist_benchmark.pdf}
 \par\smallskip
 {\small\textbf{Figure 3:} Genuine-MNIST test comparison and controlled robustness. Exact QRC
 bars show mean and population variation across three seeds; finite-shot/noise
@@ -251,10 +276,9 @@ conditions are classical simulations, not hardware-calibrated experiments.\par}
 \end{center}
 
 % SOURCE: configs/reproduction/mnist_exact_portability_reference.json :: root_cause, publication_value_policy, summary
-\newpage
 The qBraid e0l4 clean-room run (Python 3.12.3, Linux/x86\_64) verified identical
 official files, partitions, preprocessing, architecture, seeds and protocol,
-yet reproduced QRC mean accuracy 0.875 rather than the frozen macOS/ARM 0.874.
+but produced QRC mean accuracy 0.875 rather than the frozen macOS/ARM 0.874.
 Across 3,000 test seed--image evaluations, 14 predictions changed, for a net
 gain of three correct predictions. Reservoir features first differ only at
 floating-point last bits (at most \(6.44\times10^{-15}\)) and, with either
@@ -276,23 +300,27 @@ hardware calibrated, and no physical QPU was executed.
 % SOURCE: configs/phase3_reproduction.yaml :: environment, tasks
 % SOURCE: configs/reproduction/processed_data_semantic_reference.json :: contract
 % SOURCE: configs/reproduction/garch_portability_reference.json :: comparison_contract
-Reproduction uses a checksum-pinned Python environment and a resumable
-orchestrator. Immutable raw inputs remain SHA-256 exact. Generated financial
-tables require exact rows, dates, splits, labels, missingness and thresholds;
-finite decimals are canonically committed at 10 significant digits, whose
-maximum relative quantisation width is \(10^{-9}\). A separately gated GARCH
-portability contract accepts only equivalent optimiser endpoints and forecast
-paths; the observed metric drift was below \(9\times10^{-8}\), inside a
-GARCH-only \(2.5\times10^{-7}\) metric envelope, with unchanged threshold
-crossings, rankings and displayed values. The qBraid full workflow also
-regenerated statistical, diagnostic and publication artefacts.
+% SOURCE: configs/reproduction/mnist_exact_portability_reference.json :: comparison_contract,publication_value_policy
+% SOURCE: qbraid_evidence/final_clean_room/execution_report.json :: environment,tasks,status
+Reproduction uses a pinned Python/package environment and a resumable
+orchestrator. The qBraid Linux/x86 clean-room workflow kept immutable source
+data SHA-256 exact and verified generated cross-platform artefacts through
+semantic commitments over rows, dates, labels, splits and numerical values.
+Narrow, evidence-backed GARCH and MNIST portability contracts accept only
+equivalent optimiser or readout paths without changed threshold decisions,
+rankings or conclusions. Statistical, diagnostic and publication artefacts
+were regenerated. All QRC execution remained classical simulation; no
+physical QPU was used.
 
 The compact QRC demonstrates useful nonlinear expressivity and competitive
 performance in selected settings, but it establishes neither quantum advantage
-nor systematic superiority over strong classical models. Its principal value
-here is a falsifiable, reproducible assessment of where a small
-exact-simulation QRC is competitive, where classical methods remain stronger,
-and how numerical portability affects hybrid quantum--classical workflows.
+nor systematic superiority over strong classical models. In an operational
+setting, it is therefore better viewed as a complementary nonlinear signal
+within a multi-model volatility framework than as a replacement for logistic,
+ESN or GARCH forecasting systems. Its principal value here is a falsifiable,
+reproducible assessment of where a small exact-simulation QRC is competitive,
+where classical methods remain stronger, and how numerical portability affects
+hybrid quantum--classical workflows.
 
 \begingroup
 \small
