@@ -1,0 +1,57 @@
+{
+  "assets": [
+    {
+      "copied_file_sha256": "4df86f6a34dbe2bc6e91daf6e8385ae2aa491009482101ae58da5142b25444a5",
+      "destination_filename": "figures/financial_comparison.pdf",
+      "directly_included": true,
+      "figure_or_table_number": "Figure 2",
+      "original_repository_path": "paper_assets/figures/publication_figure_2_financial_comparison.pdf",
+      "original_sha256": "4df86f6a34dbe2bc6e91daf6e8385ae2aa491009482101ae58da5142b25444a5",
+      "purpose": "Financial test comparison and Stage 2A uncertainty",
+      "source_experiment": "Frozen financial benchmark and statistical validation",
+      "transformation": null,
+      "transformed": false
+    },
+    {
+      "copied_file_sha256": "96eed1a4175cd1928895887da5be8dfae9c916c0719e140c63c4e3169cd77bde",
+      "destination_filename": "figures/mnist_benchmark.pdf",
+      "directly_included": true,
+      "figure_or_table_number": "Figure 3",
+      "original_repository_path": "paper_assets/figures/publication_figure_4_mnist_benchmark.pdf",
+      "original_sha256": "96eed1a4175cd1928895887da5be8dfae9c916c0719e140c63c4e3169cd77bde",
+      "purpose": "Genuine-MNIST model comparison and controlled robustness",
+      "source_experiment": "Frozen genuine-MNIST benchmark",
+      "transformation": null,
+      "transformed": false
+    },
+    {
+      "copied_file_sha256": "3fc001af2078ba2475863ff7bb4ad5a2346c76c37c8b40d34306ca14b098cc67",
+      "destination_filename": "tables/financial_results.tex",
+      "directly_included": true,
+      "figure_or_table_number": "Table 1",
+      "original_repository_path": "paper_assets/tables/publication_table_2_financial_benchmark.json",
+      "original_sha256": "fe82b17b076bf7188d470b3142acda186338cccdbc42cbea44007ee7a68a70f2",
+      "purpose": "Compact two-panel financial benchmark table",
+      "source_experiment": "Frozen financial benchmark",
+      "transformation": "Deterministic field selection and LaTeX formatting by submission/phase3/prepare_assets.py; no numeric recomputation",
+      "transformed": true
+    },
+    {
+      "copied_file_sha256": "215e0089f49fcb1ccc520d7e3bc072337afd828012d2843110eeddc1d088cee0",
+      "destination_filename": "tables/mnist_results.tex",
+      "directly_included": true,
+      "figure_or_table_number": "Table 2",
+      "original_repository_path": "paper_assets/tables/publication_table_3_mnist_benchmark.json",
+      "original_sha256": "5a6a8ace43d107cf4c09b6153f0b4cb359e53f0e6f3765396cece1e621e6d202",
+      "purpose": "Compact genuine-MNIST model-comparison table",
+      "source_experiment": "Frozen genuine-MNIST benchmark",
+      "transformation": "Deterministic selection of model-comparison rows and LaTeX formatting by submission/phase3/prepare_assets.py; no numeric recomputation",
+      "transformed": true
+    }
+  ],
+  "generation_command": "python3 submission/phase3/prepare_assets.py",
+  "generator": "submission/phase3/prepare_assets.py",
+  "policy": "Frozen source checksums are verified before copying or transformation. Direct figure copies must be byte-identical.",
+  "schema_version": 1,
+  "source_commit": "3b562e72c655e6e4fb38b45ec22cfb4a1f96b530"
+}
