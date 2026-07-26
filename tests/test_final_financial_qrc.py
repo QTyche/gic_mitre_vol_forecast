@@ -12,6 +12,7 @@ from qtyche_qrc.experiments.final_financial_qrc import (
     RIDGE_GRID,
     SEEDS,
     STUDY_ID,
+    _completed_run_uses_cache,
     _run_row,
     _validation_selection,
     aggregate_exact_rows,
@@ -242,6 +243,17 @@ def test_partial_resumption_discovers_only_complete_runs(tmp_path: Path) -> None
     assert discover_completed_final_runs(partial_root, snapshot_id="snapshot") == {}
 
 
+def test_partial_resumption_rejects_stale_feature_cache(tmp_path: Path) -> None:
+    directory = _fake_completed_run(tmp_path)
+    manifest_path = directory / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["qrc_feature_cache_key_checksum"] = "current-cache"
+    _write_json(manifest_path, manifest)
+
+    assert _completed_run_uses_cache(directory, "current-cache")
+    assert not _completed_run_uses_cache(directory, "stale-cache")
+
+
 def test_reset_reference_reproduction_and_finiteness_are_recorded(tmp_path: Path) -> None:
     directory = tmp_path / "run"
     (directory / "model").mkdir(parents=True)
@@ -327,3 +339,13 @@ def test_condition_recording_and_aggregation_are_deterministic() -> None:
         for index, seed in enumerate(SEEDS)
     ]
     assert aggregate_exact_rows(rows) == aggregate_exact_rows(list(reversed(rows)))
+
+
+def test_final_comparison_selects_latest_complete_public_baseline() -> None:
+    source = (_root() / "src/qtyche_qrc/experiments/final_financial_qrc.py").read_text(
+        encoding="utf-8"
+    )
+
+    assert "latest[model_type] = directory" in source
+    assert 'manifest.get("status") != "success"' in source
+    assert 'manifest = json.loads((directory / "manifest.json")' in source

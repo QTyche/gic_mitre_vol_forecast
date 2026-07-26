@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "reproduce_headline.sh: not implemented; models and the frozen data contract are pending" >&2
-exit 1
-
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_dir"
+exec "${PYTHON_BIN:-python}" scripts/reproduce_phase3.py --headline "$@"

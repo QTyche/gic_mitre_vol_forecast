@@ -1,217 +1,267 @@
-# qBraid Lab reproduction
+# Final Phase 3 qBraid clean-room reproduction
 
-This guide reproduces the existing Phase 3 experiments from a terminal in
-qBraid Lab. It does not change the frozen data contract, temporal splits, QRC
-mathematics, or model-selection rules.
+This guide is the judge and agent path for Stage 3A. It preserves the frozen
+financial architecture, classical comparators, MNIST benchmark, temporal
+splits, thresholds, validation-only selection, and Stage 2C paper facts.
 
-## Prerequisites
+The QRC is simulated classically. The exact financial reference uses NumPy
+density matrices; the robustness grids use labelled sampling and controlled
+noise models. No physical QPU is executed and no quantum advantage is claimed.
 
-- A qBraid account and a running qBraid Lab instance.
-- A public GitHub repository containing this project. Replace both placeholder
-  fields below only after that repository exists.
-- Git and a persistent qBraid Python environment with Python 3.11.
-- For the public pilot only, the immutable raw snapshot and its processed files
-  in the repository-relative locations described under **Cached public data**.
+## Clean-room boundary
 
-The smoke workflow is synthetic, CPU-only, and offline after package
-installation. No qBraid API key or quantum-device allocation is required.
+Start from a new clone of:
 
-## Clone and create the environment
+```text
+https://github.com/QTyche/gic_mitre_vol_forecast.git
+```
 
-In a qBraid Lab terminal:
+The frozen Stage 2C submission ancestor is
+`cd9fa988f854009e408af1774a97ed663b0e8b86`. Stage 3A accepts that commit or a
+compatible descendant. The fast verifier requires a clean Git state.
+
+Do not carry any of these into the clone:
+
+- `.venv`, bytecode, tool caches, or an editable install from another checkout;
+- `data/raw/`, `data/processed/`, or a prior MNIST cache;
+- generated `results/` or QRC feature caches;
+- a prior evidence directory.
+
+A first headline or full run checks for those generated trees and refuses to
+continue if it finds them. A later invocation can resume the same evidence
+session.
+
+## qBraid environment
+
+Python 3.12 is preferred and Python 3.11 is the minimum. In qBraid Lab, create
+an empty persistent Python environment in the Environment Manager and activate
+it before installing.
+
+The qBraid CLI has changed between images. Earlier testing found that this
+command was unreliable and it is deliberately not part of the final path:
+
+```text
+qbraid envs create -n NAME -f environment-qbraid.yaml -y
+```
+
+Likewise, do not pass `requirements-qbraid.txt` to a qBraid-specific
+requirements parser; its compound ranges are valid pip syntax. If an agent must
+create the environment from a terminal, first run `qbraid envs create --help`
+in that Lab image and record the exact syntax that succeeds. Do not infer it
+from this document.
+
+After activating the empty environment:
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git qtyche-qrc
-cd qtyche-qrc
-qbraid envs create -n qtyche-qrc-phase3 -f environment-qbraid.yaml -y
-qbraid envs activate qtyche-qrc-phase3
+git clone https://github.com/QTyche/gic_mitre_vol_forecast.git
+cd gic_mitre_vol_forecast
 ./scripts/setup_qbraid.sh
 ```
 
-The YAML environment requests Python `>=3.11,<3.13`. The requirements file
-contains bounded compatible ranges for the numerical, plotting, test, lint,
-and type-check dependencies. The setup script installs the repository into the
-active environment and finishes by running the qBraid verifier. It deliberately
-does not refer to a workstation virtual environment or operating-system package
-manager.
+The setup script confirms Python, exports headless plotting defaults, upgrades
+pip, installs the recorded scientific package versions with pip, installs this
+package from the current clone, and runs the repository qBraid environment
+check. The fast verifier rejects scientific-package drift. Setup does not need
+a system LaTeX installation.
 
-If the qBraid environment already exists, activate it and run:
-
-```bash
-qbraid envs activate qtyche-qrc-phase3
-./scripts/setup_qbraid.sh
-```
-
-qBraid environments are persistent virtual environments. Confirm that the
-terminal is using the environment's Python before installing packages:
+When qBraid does not expose its identity to child processes, record it:
 
 ```bash
-python --version
-python -m pip --version
+export QTYCHE_QBRAID_ENVIRONMENT_NAME="THE-ACTUAL-NAME"
+export QTYCHE_QBRAID_ENVIRONMENT_ID="THE-ACTUAL-ID"
 ```
 
-## Verify the environment
+Replace those values with qBraid’s displayed values. Never commit account
+credentials or API keys.
+
+## Tier 1: fast verification
 
 ```bash
-./scripts/verify_qbraid_environment.sh
+python scripts/reproduce_phase3.py --verify
 ```
 
-Equivalent direct command:
+This checks:
 
-```bash
-python -m qtyche_qrc.cli verify-qbraid
-```
+- supported Python and required packages;
+- clean Git state and compatible submission ancestry;
+- exact hashes of the frozen financial, MNIST, and publication configs;
+- the frozen public-data declaration and four official MNIST download hashes;
+- final two-qubit architecture identity and architecture-manifest checksum;
+- the 42 files selected by the publication asset manifest;
+- a canonical publication-tree digest;
+- source hashes registered by every paper fact;
+- preservation of all prohibited claims;
+- focused Stage 3A tests.
 
-Success writes `results/qbraid/qbraid_environment_report.json`. The report
-checks Python, imports, installed distributions, repository files and relative
-configuration paths, data-manifest readiness, fixture configurations, output
-writability, Git commit and dirty state, CLI commands, and availability of the
-exact NumPy density-matrix backend. A dirty tree is recorded for provenance but
-is not by itself a verification failure.
-
-The fixture data manifest may initially be absent in a fresh clone. That state
-is reported together with its bootstrap command; the smoke stage creates the
-deterministic fixture before using the manifest. The public manifest is optional
-for smoke and mandatory for the public pilot.
-
-## Synthetic qBraid smoke
-
-```bash
-./scripts/reproduce_qbraid_smoke.sh
-```
-
-This invokes the verifier, prepares deterministic fixture data, runs all six
-classical fixture baselines, generates three-qubit exact QRC features, fits the
-QRC classification and log-variance regression heads, runs a reduced capacity
-characterization, and verifies output checksums. It does not open a notebook or
-make a network request.
-
-The single orchestration summary is
-`results/qbraid/qbraid_smoke_summary.json`. Model runs retain their normal
-scientific artifacts under `results/` and `results/qrc_smoke/`. All fixture
-outputs state that they are synthetic and are not financial-performance
-evidence.
-
-On the Phase 3 reference workstation, the post-install smoke took about 3.3
-seconds. Allow roughly one to five minutes in a shared qBraid Lab CPU session;
-font-cache initialization and available CPU capacity can dominate the first
-run. The summary records the actual wall time and all command durations.
-
-Reference deterministic SHA-256 values from the Python 3.11 smoke are:
-
-| Artifact | SHA-256 |
-| --- | --- |
-| QRC classifier test predictions | `6d6c9811724ec4e6c1a5e9d7c607b5c18fd1ba91afbfa7fdf7befadb26d8d78a` |
-| QRC regressor test predictions | `30421a377fca3abfa209391a4da3145583c9d87875b7196ba8d1de0949d59310` |
-| Reduced linear-memory CSV | `252a1988b9922bac3b588868883070ed9dfb8a50d0d6854b658d1c9d9ecba80c` |
-| Reduced quadratic-capacity CSV | `488b71466703662142c091dd88f51cb56b329155302f51a00d8c86b7ee5ac402` |
-| Reduced cross-delay-capacity CSV | `a6b38a2aba482fd9cb52191ff6545fa97ba4a31a588d2caa4d89ce671a4a5293` |
-
-Use `deterministic_output_checksums` in the generated summary as the complete
-machine-readable reference. Manifests themselves intentionally change when the
-timestamp, Git state, platform, or package environment changes.
-
-## Cached public data and the six-qubit pilot
-
-The public raw files are intentionally not committed. Before entering qBraid,
-place the immutable snapshot at:
+It reads tracked files only and executes no model. Expected evidence includes:
 
 ```text
-data/raw/public_market/yahoo_chart_20100101_20251231_v1/
+qbraid_evidence/final_clean_room/
+├── command_log.json
+├── environment_report.json
+├── execution_report.json
+├── fast_verification_report.json
+├── git_report.json
+└── terminal_transcript.log
 ```
 
-It must contain `spy.csv`, `vix.csv`, `qqq.csv`, and
-`snapshot_manifest.json`. Also provide the already prepared files at:
+## Tier 2: headline reproduction
+
+Run this only in the same fresh clone after Tier 1:
+
+```bash
+python scripts/reproduce_phase3.py --headline
+```
+
+The orchestrator:
+
+1. repeats the frozen checks;
+2. downloads or verifies the named Yahoo snapshot and records provider hashes;
+3. causally prepares and audits the frozen temporal dataset, requiring exact
+   checksums for all six processed model-input files;
+4. fits the required public classical readouts;
+5. fits leakage-safe Gaussian GARCH(1,1);
+6. runs the frozen two-qubit, two-virtual-node exact financial QRC for seeds
+   2026, 2027, and 2028, sharing each seed’s feature cache across readouts;
+7. downloads checksum-pinned official MNIST and runs the genuine smoke subset;
+8. compares financial QRC and GARCH headline values with the Stage 2C facts.
+
+No task can fall back to fixtures or generated digits. Floating comparisons use
+absolute tolerance `1e-10` plus relative tolerance `1e-9`. This covers
+final-digit differences across BLAS, SciPy, and CPU implementations; it does
+not relax processed data, config, or publication checksums.
+
+The historical raw snapshot declaration is retained exactly. Yahoo currently
+returns revised final digits for SPY’s `adjusted_close` field, which is not used
+by any feature, target, split, threshold, or GARCH return. The evidence package
+therefore records both the historical and current raw hashes, flags the
+provider revision, and separately proves byte equality of
+`features_unscaled.csv`, the three temporal splits, preprocessing parameters,
+and regime thresholds. Any change to one of those six scientific inputs is
+fatal.
+
+The main additional report is:
 
 ```text
-data/processed/public_market/
+qbraid_evidence/final_clean_room/headline_reproduction_report.json
 ```
 
-The pilot verifies the snapshot identity, every raw checksum, the processed
-manifest, and every processed checksum before running. It never redownloads
-market data. Run one fixed seed first:
+Normal generated files remain in ignored `data/` and `results/` trees.
+
+## Tier 3: full reproduction
+
+Review the planning range printed in the execution report, then run:
 
 ```bash
-./scripts/reproduce_qbraid_public_pilot.sh --seed 2026
+python scripts/reproduce_phase3.py --full
 ```
 
-After reviewing that result, run the frozen three-seed set:
+This extends the final pipeline with:
+
+- complete financial finite-shot and controlled-noise robustness;
+- the aligned GARCH/classical comparison;
+- full three-seed genuine-MNIST exact benchmark and limited robustness;
+- dynamic checksum pinning of regenerated predictions to unchanged Stage 2A
+  statistical controls;
+- Stage 2B calibration, regime, temporal, numerical, and per-digit diagnostics;
+- reconstruction of the compact validation-selection plotting sources from
+  frozen facts (not exploratory model reruns);
+- publication generation into
+  `qbraid_evidence/final_clean_room/regenerated_publication_assets/`;
+- source-to-display and frozen-fact comparison.
+
+The historical `paper_assets/` tree is read and verified but never overwritten.
+The full run does not rerun superseded qubit, encoding-density, or state-memory
+searches.
+
+## Resumption and failure semantics
+
+Resume is the default:
 
 ```bash
-./scripts/reproduce_qbraid_public_pilot.sh --all-seeds
+python scripts/reproduce_phase3.py --headline
+python scripts/reproduce_phase3.py --full
 ```
 
-The workflow uses the six-qubit exact backend and reuses checksum-keyed QRC
-features when the data manifest, feature names, reservoir configuration, and
-seed agree. It writes the orchestration summary to
-`results/qbraid/qbraid_public_pilot_summary.json`, model artifacts under
-`results/qrc_public_pilot/`, and per-seed comparison tables under
-`results/tables/`.
+For each task, the report stores a fingerprint of the command, Git commit, and
+orchestration config plus checksums of watched outputs. A task is labelled
+`resumed_verified` only when every recorded artifact still exists with the same
+size and SHA-256. Missing or changed output forces recomputation. A failed
+subprocess stops the tier, records the nonzero exit status and output tail, and
+never receives successful status.
 
-Reference feature-state generation took about ten seconds per seed on the
-development workstation. Allow approximately two to ten minutes for one
-uncached seed and six to thirty minutes for all three in a shared Lab CPU
-session. A cache hit should be substantially faster. These are planning ranges,
-not performance claims; the summary and experiment manifests record actual
-times and checksums.
-
-## Agent-executable stages
-
-The same workflows can be driven without shell wrappers or notebooks:
+Use this only when recomputation is intentional:
 
 ```bash
-python scripts/reproduce_phase3.py --stage smoke
-python scripts/reproduce_phase3.py --stage capacity
-python scripts/reproduce_phase3.py --stage public-pilot --seed 2026
-python scripts/reproduce_phase3.py --stage all --all-seeds
+python scripts/reproduce_phase3.py --full --no-resume
 ```
 
-Each run validates its arguments, calls the repository CLI entry points, records
-every command and output, writes structured JSON, and exits nonzero after any
-failure.
+## Evidence package
 
-## Runtime metadata
-
-The qBraid wrappers set `execution_platform` to `qbraid_lab`. If the Lab image
-does not expose environment identity automatically, these optional variables
-can make the manifest more specific:
+After a successful tier:
 
 ```bash
-export QTYCHE_QBRAID_ENVIRONMENT_NAME="qtyche-qrc-phase3"
-export QTYCHE_QBRAID_ENVIRONMENT_ID="ENVIRONMENT-ID"
-export QTYCHE_QBRAID_LAB_IMAGE="LAB-IMAGE-NAME"
+python scripts/package_qbraid_evidence.py
 ```
 
-Missing optional identity fields are recorded as null. The Python, operating
-system, package versions, Git commit, and dirty state are still captured.
+This adds the package freeze, dataset/checksum report, failures/resolutions
+record, and checksum inventory, then creates:
+
+```text
+qbraid_evidence/phase3_final_clean_room.tar.gz
+qbraid_evidence/phase3_final_clean_room.tar.gz.sha256
+```
+
+The archive uses normalized tar metadata and a zero gzip timestamp. The archive,
+datasets, model outputs, and feature caches are ignored by Git.
+
+## Expected runtime and resources
+
+The config currently exposes conservative preflight planning ranges:
+
+| Component | Planning range |
+| --- | ---: |
+| Environment installation | 3–12 minutes |
+| Fast verification | 1–5 minutes |
+| Headline reproduction | 8–35 minutes |
+| Full financial workflow | 20–90 minutes |
+| Full MNIST workflow | 10–60 minutes |
+| Statistics and publication | 3–20 minutes |
+| Total full pipeline | 35–170 minutes |
+| Disk | 1–4 GiB |
+| Peak memory | 1–6 GiB |
+
+These values are planning guidance, not measured qBraid performance. The final
+Stage 3A evidence must replace or accompany them with actual qBraid installation,
+verification, financial, MNIST, statistics/publication, total wall time, disk
+use, and peak-memory records. Until that actual run exists, qBraid validation is
+not complete.
 
 ## Troubleshooting
 
-- **Python verification fails:** activate the environment and confirm that
-  `python --version` is at least 3.11.
-- **Imports or dependencies fail:** run `./scripts/setup_qbraid.sh` with the
-  environment's Python, not the base Lab interpreter.
-- **A prohibited path is reported:** replace the committed host-specific path
-  with a path relative to the repository root. Runtime-generated manifests may
-  describe their working directory, but no command may depend on it.
-- **The public snapshot is missing:** transfer the frozen snapshot and processed
-  directory to the exact cached locations above. The pilot does not download it.
-- **A checksum mismatch is reported:** do not bypass the check. Restore the
-  immutable file matching its manifest or rebuild the complete snapshot through
-  the separately documented explicit acquisition workflow.
-- **A QRC cache is not reused:** compare the data-manifest checksum, reservoir
-  seed, QRC configuration checksum, and selected feature names recorded in the
-  feature metadata.
-- **The first plot is slow:** matplotlib may be building its font cache; later
-  runs should avoid that one-time cost.
+- **Dirty repository:** use another clean clone; do not bypass the verifier.
+- **Pre-existing generated trees:** use another clean clone for the first
+  headline/full run.
+- **Processed public-data checksum mismatch:** remove only the named corrupt
+  download and rerun. Never replace the snapshot with fixture data.
+- **Historical raw SPY hash differs but processed hashes pass:** retain the
+  recorded provider-revision warning. Do not edit the download to force a raw
+  hash; the six frozen processed checksums remain the scientific gate.
+- **MNIST checksum mismatch:** remove only the named IDX gzip and rerun with the
+  download path. Never synthesize a replacement.
+- **Package installed into qBraid base Python:** reactivate the persistent
+  environment and confirm `python -m pip --version` points inside it.
+- **Display/font failure:** retain `MPLBACKEND=Agg`; matplotlib creates its own
+  cache on first use.
+- **Numeric tolerance failure:** inspect the recorded delta and environment.
+  Do not silently widen tolerances or change the model.
+- **Interrupted run:** rerun the same tier. The evidence report distinguishes
+  resumed and recomputed tasks.
 
-## Limitations and execution meaning
+## Agent Skill
 
-The density-matrix implementation is exact only up to floating-point numerical
-tolerances and is deliberately capped at six qubits. It models no physical
-noise, shot sampling, calibration drift, compilation constraints, or device
-queueing. The public pilot is correctness and stability evidence, not evidence
-of quantum advantage or superiority over the classical controls.
-
-**The current qBraid run uses an exact NumPy density-matrix simulator inside
-qBraid Lab. It is not a physical quantum-hardware result.**
+The repository Skill is
+`.agents/skills/qbraid-phase3-reproduction/SKILL.md`. It routes an AI coding
+agent through architecture inspection, genuine-data acquisition, tier choice,
+output discovery, failure handling, and evidence packaging without duplicating
+this guide or authorizing scientific changes.

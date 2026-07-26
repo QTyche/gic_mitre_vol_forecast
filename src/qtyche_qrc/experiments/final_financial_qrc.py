@@ -61,6 +61,7 @@ class FinalQRCConfig:
     classifier_config: Path
     regressor_config: Path
     robustness_config: Path
+    processed_file_sha256: dict[str, str] | None
     seeds: tuple[int, ...]
     smoke_seeds: tuple[int, ...]
     raw: dict[str, Any]
@@ -76,6 +77,29 @@ def _resolve(root: Path, value: object, location: str) -> Path:
     if not isinstance(value, str) or not value:
         raise ValueError(f"{location} must be a non-empty path")
     return (root / value).resolve()
+
+
+def _optional_processed_checksums(study: dict[str, Any]) -> dict[str, str] | None:
+    value = study.get("processed_file_sha256")
+    if value is None:
+        return None
+    checksums = _mapping(value, "study.processed_file_sha256")
+    required = {
+        "features_unscaled.csv",
+        "preprocessing.json",
+        "regime_thresholds.json",
+        "test.csv",
+        "train.csv",
+        "validation.csv",
+    }
+    if set(checksums) != required or any(
+        not isinstance(checksum, str) or len(checksum) != 64 for checksum in checksums.values()
+    ):
+        raise ValueError(
+            "study.processed_file_sha256 must contain SHA-256 values for the "
+            "six frozen processed-data files"
+        )
+    return {str(name): str(checksum) for name, checksum in checksums.items()}
 
 
 def _verify_checksum(path: Path, expected: object, label: str) -> None:
@@ -154,6 +178,7 @@ def load_final_qrc_config(path: Path) -> FinalQRCConfig:
         robustness_config=_resolve(
             project_root, study.get("robustness_config"), "study.robustness_config"
         ),
+        processed_file_sha256=_optional_processed_checksums(study),
         seeds=tuple(int(value) for value in cast(list[int], study.get("reservoir_seeds"))),
         smoke_seeds=tuple(int(value) for value in cast(list[int], study.get("smoke_seeds"))),
         raw=root,
@@ -240,6 +265,20 @@ def verify_final_public_data(
         )
     if dataset.manifest.get("source_snapshot_id") != config.snapshot_id:
         raise ValueError("processed data do not derive from the frozen snapshot")
+    if config.processed_file_sha256 is not None:
+        mismatches = {
+            name: {
+                "expected": expected,
+                "actual": dataset.processed_checksums.get(name),
+            }
+            for name, expected in config.processed_file_sha256.items()
+            if dataset.processed_checksums.get(name) != expected
+        }
+        if mismatches:
+            raise ValueError(
+                "frozen processed-data file checksum mismatch: "
+                + json.dumps(mismatches, sort_keys=True)
+            )
     if data_config.snapshot_manifest_path is None:
         raise FileNotFoundError("public data config omits the snapshot manifest")
     return dataset, {
@@ -251,6 +290,11 @@ def verify_final_public_data(
             for name, record in sorted(cast(dict[str, Any], snapshot["files"]).items())
         },
         "processed_manifest_sha256": dataset.processed_checksums["data_manifest.json"],
+        "processed_verification_mode": (
+            "exact_file_checksums"
+            if config.processed_file_sha256 is not None
+            else "manifest_self_consistency"
+        ),
         "processed_checksums": dataset.processed_checksums,
         "split_row_counts": {
             "train": len(dataset.train.X),
@@ -313,6 +357,12 @@ def discover_completed_final_runs(
         if identity is not None:
             completed[identity] = directory
     return completed
+
+
+def _completed_run_uses_cache(directory: Path, cache_key: str) -> bool:
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    recorded = manifest.get("qrc_feature_cache_key_checksum")
+    return isinstance(recorded, str) and recorded == cache_key
 
 
 def _prediction_correlation(path: Path) -> float:
@@ -488,6 +538,30 @@ def _validation_only_payload(value: Any) -> Any:
 
 
 def _validation_selection(config: FinalQRCConfig) -> dict[str, Any]:
+    evidence = _mapping(config.raw.get("selection_evidence"), "selection_evidence")
+    reproduction_record = evidence.get("reproduction_reference")
+    if reproduction_record is not None:
+        record = _mapping(reproduction_record, "selection_evidence.reproduction_reference")
+        reference_path = _resolve(
+            config.project_root,
+            record.get("path"),
+            "selection_evidence.reproduction_reference.path",
+        )
+        payload = _mapping(
+            json.loads(reference_path.read_text(encoding="utf-8")),
+            "reproduction selection reference",
+        )
+        selection = _mapping(
+            payload.get("final_validation_selection"),
+            "reproduction selection reference.final_validation_selection",
+        )
+        if (
+            selection.get("selection_basis") != "validation only"
+            or selection.get("held_out_metrics_excluded") is not True
+            or selection.get("selection_complete") is not True
+        ):
+            raise ValueError("clean-room selection reference violates the frozen contract")
+        return selection
     state_path = (
         config.project_root / "results/qrc_state_memory_ablation/tables/"
         "qrc_state_memory_validation_policy_selection.json"
@@ -533,19 +607,33 @@ def _find_classical_runs(config: FinalQRCConfig) -> list[dict[str, Any]]:
         "rv_persistence": "RV persistence",
         "esn_regressor": "ESN regressor",
     }
+    latest: dict[str, Path] = {}
     for directory in sorted(path for path in public_root.iterdir() if path.is_dir()):
         manifest_path = directory / "manifest.json"
         if not manifest_path.is_file():
             continue
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
         model_type = str(manifest["model_type"])
-        if model_type not in names:
+        if (
+            model_type not in names
+            or manifest.get("status") != "success"
+            or manifest.get("is_synthetic")
+        ):
             continue
+        latest[model_type] = directory
+    missing = set(names) - set(latest)
+    if missing:
+        raise FileNotFoundError(
+            "final comparison is missing public baseline runs: " + ", ".join(sorted(missing))
+        )
+    for model_type, display_name in names.items():
+        directory = latest[model_type]
+        manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
         for split in ("validation", "test"):
             metrics = json.loads((directory / f"{split}_metrics.json").read_text(encoding="utf-8"))
             rows.append(
                 {
-                    "model": names[model_type],
+                    "model": display_name,
                     "model_type": model_type,
                     "task": manifest["task"],
                     "split": split,
@@ -862,7 +950,11 @@ def run_final_financial_qrc(
             (TASKS[1], config.regressor_config),
         ):
             identity = (seed, task)
-            if resume and identity in completed:
+            if (
+                resume
+                and identity in completed
+                and _completed_run_uses_cache(completed[identity], cache_key)
+            ):
                 directory = completed[identity]
                 resumed.append(
                     {

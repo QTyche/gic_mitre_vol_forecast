@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "build_submission.sh: not implemented; reviewed paper and result artifacts are pending" >&2
-exit 1
-
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_dir"
+exec "${PYTHON_BIN:-python}" scripts/package_qbraid_evidence.py "$@"

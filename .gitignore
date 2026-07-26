@@ -35,6 +35,7 @@ results/qbraid/
 results/statistical_validation/
 results/benchmark_diagnostics/
 results/publication_assets/
+qbraid_evidence/
 paper/*.aux
 paper/*.bbl
 paper/*.blg

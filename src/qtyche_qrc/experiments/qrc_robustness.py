@@ -806,6 +806,12 @@ def discover_completed_robustness_runs(
     return completed
 
 
+def _robustness_run_uses_cache(directory: Path, cache_key: str) -> bool:
+    manifest = json.loads((directory / "manifest.json").read_text(encoding="utf-8"))
+    recorded = manifest.get("qrc_feature_cache_key_checksum")
+    return isinstance(recorded, str) and recorded == cache_key
+
+
 def pending_robustness_runs(
     points: tuple[RobustnessPoint, ...],
     completed: dict[RunIdentity, Path],
@@ -1617,9 +1623,10 @@ def run_qrc_noise_robustness(
             "completed_tasks": [],
         }
         previous_state = point_state.get(point.checksum)
-        if isinstance(previous_state, dict):
-            if previous_state.get("feature_cache_key_checksum") != key.checksum:
-                raise ValueError("resumed robustness point cache key changed")
+        if (
+            isinstance(previous_state, dict)
+            and previous_state.get("feature_cache_key_checksum") == key.checksum
+        ):
             state_record["completed_tasks"] = list(previous_state.get("completed_tasks", []))
         point_state[point.checksum] = state_record
         _write_json(state_path, state)
@@ -1629,7 +1636,11 @@ def run_qrc_noise_robustness(
             (TASKS[1], regressor_path),
         ):
             identity = (point.checksum, task)
-            if resume and identity in completed:
+            if (
+                resume
+                and identity in completed
+                and _robustness_run_uses_cache(completed[identity], key.checksum)
+            ):
                 experiment_dir = completed[identity]
                 resumed.append(
                     {

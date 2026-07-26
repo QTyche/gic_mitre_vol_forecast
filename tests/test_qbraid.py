@@ -25,26 +25,27 @@ def _repository_root() -> Path:
     return Path(__file__).resolve().parents[1]
 
 
-def test_qbraid_environment_configuration_parses_with_pinned_ranges() -> None:
+def test_qbraid_environment_configuration_uses_frozen_versions() -> None:
     root = _repository_root()
     environment = yaml.safe_load((root / "environment-qbraid.yaml").read_text(encoding="utf-8"))
     requirements = (root / "requirements-qbraid.txt").read_text(encoding="utf-8")
+    frozen_versions = {
+        "numpy": "2.4.6",
+        "scipy": "1.17.1",
+        "pandas": "2.3.3",
+        "scikit-learn": "1.9.0",
+        "matplotlib": "3.11.1",
+        "PyYAML": "6.0.3",
+        "pytest": "8.4.2",
+        "ruff": "0.15.22",
+        "mypy": "1.20.2",
+    }
 
     assert environment["name"] == "qtyche-qrc-phase3"
     assert "python>=3.11,<3.13" in environment["dependencies"]
-    for package in (
-        "numpy",
-        "scipy",
-        "pandas",
-        "scikit-learn",
-        "matplotlib",
-        "PyYAML",
-        "pytest",
-        "ruff",
-        "mypy",
-    ):
-        assert f"{package}>=" in requirements
-        assert ",<" in next(line for line in requirements.splitlines() if line.startswith(package))
+    requirement_lines = set(requirements.splitlines())
+    for package, version in frozen_versions.items():
+        assert f"{package}=={version}" in requirement_lines
 
 
 def test_prohibited_path_scan_reports_host_specific_text(tmp_path: Path) -> None:

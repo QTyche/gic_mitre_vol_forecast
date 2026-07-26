@@ -1,0 +1,39 @@
+# Frozen reproduction contract
+
+## Identities
+
+- Repository: `https://github.com/QTyche/gic_mitre_vol_forecast.git`
+- Branch: `main`
+- Submission ancestor:
+  `cd9fa988f854009e408af1774a97ed663b0e8b86`
+- Financial snapshot: `yahoo_chart_20100101_20251231_v1`
+- Exact backend: `numpy_density_matrix_exact`
+- Evidence root: `qbraid_evidence/final_clean_room/`
+
+## Tier outputs
+
+- Verify: `fast_verification_report.json`, `execution_report.json`,
+  environment/Git reports, command log, and transcript.
+- Headline: verify outputs plus `headline_reproduction_report.json` and normal
+  ignored financial, GARCH, baseline, and MNIST-smoke outputs.
+- Full: headline dependencies plus full robustness, genuine-MNIST, Stage 2A,
+  Stage 2B, isolated regenerated publication assets, and
+  `full_reproduction_report.json`.
+
+## Equality policy
+
+Require exact SHA-256 equality for tracked configs, dataset declarations, all
+six processed financial model-input files, publication-manifest-selected files,
+and generated evidence artifacts. Record the historical and current raw
+provider hashes separately: Yahoo may revise unused `adjusted_close` digits,
+but any processed-file difference is fatal. Regenerated metrics use absolute
+tolerance `1e-10` plus relative tolerance `1e-9` because BLAS, SciPy, and CPU
+implementations can change final floating digits. Never change a tolerance
+without documenting the observed delta and scientific justification.
+
+## Runtime status
+
+Treat ranges displayed before execution as planning guidance until actual
+qBraid measurements replace them in the final evidence. Record installation,
+verification, financial, MNIST, statistics/publication, total wall time, disk
+usage, and peak child RSS separately.

@@ -12,6 +12,73 @@ baselines, Echo State Network controls, exact noiseless quantum reservoir,
 analytical capacity diagnostics, evaluation framework, and reproducible
 experiment manifests.
 
+## For Judges
+
+[<img src="https://qbraid-static.s3.amazonaws.com/logos/Launch_on_qBraid_white.png" width="150" alt="Launch on qBraid">](https://account.qbraid.com?gitHubUrl=https://github.com/QTyche/gic_mitre_vol_forecast.git)
+
+The button targets `https://github.com/QTyche/gic_mitre_vol_forecast.git` on
+`main`. In qBraid Lab, create and activate an empty persistent Python 3.12
+environment using the Environment Manager, open a terminal, and run:
+
+```bash
+git clone https://github.com/QTyche/gic_mitre_vol_forecast.git
+cd gic_mitre_vol_forecast
+./scripts/setup_qbraid.sh
+python scripts/reproduce_phase3.py --verify
+```
+
+The fast check verifies the clean Git state, compatible submission ancestry,
+dependencies, frozen configs and data declarations, final architecture
+checksum, all 42 manifest-selected paper assets, publication-tree digest,
+source-to-fact records, prohibited claims, and focused deterministic tests. It
+does not execute a model.
+
+Continue with one command per tier:
+
+```bash
+python scripts/reproduce_phase3.py --headline
+python scripts/reproduce_phase3.py --full
+python scripts/package_qbraid_evidence.py
+```
+
+Headline reproduction downloads the named public-market snapshot, verifies the
+six frozen processed model-input files byte-for-byte, runs the required
+classical readouts, GARCH, the three-seed exact financial QRC, and
+genuine-MNIST smoke, then compares regenerated financial values with the frozen
+facts. Full reproduction adds financial robustness, full genuine MNIST,
+statistical validation, diagnostics, and publication regeneration into the
+isolated evidence tree. Both tiers resume only tasks whose recorded artifacts
+still exist with matching checksums.
+
+Outputs are under ignored `data/`, `results/`, and
+`qbraid_evidence/final_clean_room/`. The evidence archive and SHA-256 sidecar
+remain outside Git. Before a full run, the command displays conservative
+planning ranges of 35–170 minutes, 1–4 GiB disk, and 1–6 GiB peak memory; these
+are not qBraid measurements. Actual environment-install, verify, financial,
+MNIST, statistics/publication, total runtime, disk, and peak-memory values must
+come from the final qBraid evidence.
+
+The frozen submission ancestor is
+`cd9fa988f854009e408af1774a97ed663b0e8b86`; the verifier also accepts a
+descendant containing only compatible reproduction work. A first headline/full
+run refuses pre-existing generated data or result trees, synthetic financial
+data, substituted MNIST, a dirty checkout, or an unrelated commit.
+
+Known limitations: Yahoo and the checksum-pinned Google MNIST mirror must be
+reachable on the first run; exact checks can pass offline only after those
+downloads exist. Yahoo has revised final digits in SPY’s unused
+`adjusted_close` field since the historical snapshot was recorded. The
+evidence reports that raw-byte difference explicitly and requires exact
+SHA-256 equality for all six processed files that constitute the model-input,
+target, split, threshold, and preprocessing contract. CPU and BLAS differences
+can change final floating digits, so regenerated metrics use a declared
+`1e-10` absolute plus `1e-9` relative tolerance. This is classical exact
+density-matrix and controlled finite-shot/noise simulation of a quantum
+reservoir. No physical QPU is executed, and no quantum advantage is claimed.
+
+See [the qBraid clean-room guide](docs/qbraid_reproduction.md) for the evidence
+schema, recovery rules, and full output inventory.
+
 ## Repository layout
 
 - `configs/`: versioned experiment and data-contract configurations
@@ -488,62 +555,6 @@ and headline claims require multiple seeds and uncertainty estimates. Frozen
 processed data will include provenance and checksums so judging does not depend
 on a live market-data endpoint. Hardware claims will identify the backend,
 transpiled circuit statistics, shot count, and measured runtime.
-
-## Launch on qBraid
-
-<!-- Replace both uppercase placeholders only after the public repository exists. -->
-[<img src="https://qbraid-static.s3.amazonaws.com/logos/Launch_on_qBraid_white.png" width="150" alt="Launch on qBraid">](https://account.qbraid.com?gitHubUrl=https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git)
-
-The button uses qBraid's official public-repository launch format, but its URL is
-intentionally a placeholder until this project has a final GitHub location.
-After launching qBraid Lab, clone the repository if the button has not already
-done so, then create and activate the pinned Python 3.11 environment:
-
-```bash
-git clone https://github.com/YOUR-USERNAME/YOUR-REPOSITORY.git qtyche-qrc
-cd qtyche-qrc
-qbraid envs create -n qtyche-qrc-phase3 -f environment-qbraid.yaml -y
-qbraid envs activate qtyche-qrc-phase3
-./scripts/setup_qbraid.sh
-```
-
-Verify the environment and run the fully offline synthetic smoke with:
-
-```bash
-./scripts/verify_qbraid_environment.sh
-./scripts/reproduce_qbraid_smoke.sh
-```
-
-The smoke writes one orchestration report at
-`results/qbraid/qbraid_smoke_summary.json`, in addition to the normal model
-artifacts. It took about 3.3 seconds after installation on the reference
-workstation; allow one to five minutes in a shared Lab CPU session. Reference
-SHA-256 values include `6d6c9811...d8d78a` for classifier test predictions,
-`30421a37...59310` for regressor test predictions, and
-`252a1988...80c` for the reduced linear-memory table. The full checksums are in
-the summary and in [the qBraid reproduction guide](docs/qbraid_reproduction.md).
-
-When the immutable raw and processed public-market snapshot is already present,
-run one fixed six-qubit seed before the complete seed set:
-
-```bash
-./scripts/reproduce_qbraid_public_pilot.sh --seed 2026
-./scripts/reproduce_qbraid_public_pilot.sh --all-seeds
-```
-
-The public wrapper verifies raw and processed checksums and does not redownload
-data. Plan for roughly two to ten minutes per uncached seed on a shared Lab CPU;
-cache hits should be faster. Missing dependencies, host-specific paths, absent
-snapshots, and checksum mismatches fail clearly. Troubleshooting, cached-data
-layout, exact output expectations, and the agent-executable stage commands are
-documented in `docs/qbraid_reproduction.md`.
-
-The main reproduction workflow will remain backend-agnostic. A targeted hardware
-validation can be added once the challenge organisers confirm the required device
-and mandatory Track A metrics.
-
-The current qBraid run uses an exact NumPy density-matrix simulator inside
-qBraid Lab. It is not a physical quantum-hardware result.
 
 ## Responsible use of generative AI
 

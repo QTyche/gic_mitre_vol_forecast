@@ -1,0 +1,152 @@
+{
+  "final_validation_selection": {
+    "architecture_frozen": true,
+    "held_out_metrics_excluded": true,
+    "schema_version": 1,
+    "selected": {
+      "n_qubits": 2,
+      "state_policy": "reset_each_input",
+      "virtual_nodes": 2
+    },
+    "selection_basis": "validation only",
+    "selection_complete": true,
+    "source_checksums": {
+      "encoding_density": "fdb4dca54d7baa780fc90b4396f8853a1ac42ebb501b289430918f93590d85a8",
+      "qubit_scaling": "71d1cba40f972a4897c86cf839562592aed16a779cf0327cec2b73e9fe524694",
+      "state_memory": "21e70d85f586af6bce9eb615ab2d9b36001654887c18c278bfe2d7b0375a6fc8"
+    }
+  },
+  "provenance": {
+    "purpose": "Compact clean-room bootstrap for the already frozen validation selection",
+    "source_commit": "a5c9f73ddee00a483299f22a5887a3dab6a7819c",
+    "test_metrics_used_for_selection": false
+  },
+  "rows": [
+    {
+      "balanced_accuracy": 0.49867132719022217,
+      "macro_f1": 0.4675854494803386,
+      "reservoir_seed": 2026,
+      "selected_ridge_alpha": 1e-05,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.6090559467714514
+    },
+    {
+      "balanced_accuracy": 0.49866560523846043,
+      "macro_f1": 0.45676325481203534,
+      "reservoir_seed": 2026,
+      "selected_ridge_alpha": 1e-05,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.651048888495293
+    },
+    {
+      "mae": 0.017426189774328287,
+      "qlike": -2.4867862689385167,
+      "reservoir_seed": 2026,
+      "rmse": 0.02961717738453235,
+      "selected_ridge_alpha": 1e-05,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    },
+    {
+      "mae": 0.021260458257403154,
+      "qlike": -2.842318154390535,
+      "reservoir_seed": 2026,
+      "rmse": 0.0850502087623573,
+      "selected_ridge_alpha": 1e-05,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    },
+    {
+      "balanced_accuracy": 0.4923542046038194,
+      "macro_f1": 0.46425441494578257,
+      "reservoir_seed": 2027,
+      "selected_ridge_alpha": 1e-05,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.6108024306909006
+    },
+    {
+      "balanced_accuracy": 0.46302815321247887,
+      "macro_f1": 0.4299277621440843,
+      "reservoir_seed": 2027,
+      "selected_ridge_alpha": 1e-05,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.6363399840472754
+    },
+    {
+      "mae": 0.021546011352364388,
+      "qlike": -2.3595309032269953,
+      "reservoir_seed": 2027,
+      "rmse": 0.04302238930347052,
+      "selected_ridge_alpha": 1e-05,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    },
+    {
+      "mae": 0.019021757258336186,
+      "qlike": -2.7870893416619476,
+      "reservoir_seed": 2027,
+      "rmse": 0.06664699962259348,
+      "selected_ridge_alpha": 1e-05,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    },
+    {
+      "balanced_accuracy": 0.472959504661727,
+      "macro_f1": 0.42811956586916117,
+      "reservoir_seed": 2028,
+      "selected_ridge_alpha": 1e-05,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.5490922749805435
+    },
+    {
+      "balanced_accuracy": 0.5105079441267314,
+      "macro_f1": 0.4748351802164068,
+      "reservoir_seed": 2028,
+      "selected_ridge_alpha": 1e-05,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "regime_classification",
+      "transition_pr_auc": 0.6325182181436337
+    },
+    {
+      "mae": 0.022481284617887863,
+      "qlike": -2.1519834788309407,
+      "reservoir_seed": 2028,
+      "rmse": 0.0422411521573275,
+      "selected_ridge_alpha": 0.001,
+      "split": "validation",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    },
+    {
+      "mae": 0.024648651263579218,
+      "qlike": -2.8137696055515646,
+      "reservoir_seed": 2028,
+      "rmse": 0.11650490160764135,
+      "selected_ridge_alpha": 0.001,
+      "split": "test",
+      "state_policy": "reset_each_input",
+      "task": "rv_regression"
+    }
+  ],
+  "schema_version": 1,
+  "validation_only_state_policy_selection": {
+    "selected_state_policy": "reset_each_input",
+    "selection_basis": "validation only",
+    "test_metrics_read": false
+  }
+}
