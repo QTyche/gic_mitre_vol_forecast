@@ -1,0 +1,76 @@
+schema_version: 1
+study:
+  id: final_financial_qrc_v1
+  project_root: ../..
+  output_root: results/final_financial_qrc
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  data_config: configs/data_public_market.yaml
+  data_config_sha256: 07281e4a7c2195f4d7f764cacd83721c36ee254491e9858c09bbcad742e88289
+  classifier_config: configs/models/final_financial_qrc_classifier.yaml
+  classifier_config_sha256: 61612bc9a15374f30a89dc4b1ad40c272e1d7ea0e2305d3ef3e4d2932678862f
+  regressor_config: configs/models/final_financial_qrc_regressor.yaml
+  regressor_config_sha256: 13a1453e8fa3aa4d86a31954086ada1285f9e16a772022f0b01683147537cad0
+  robustness_config: configs/final_financial_qrc_robustness.yaml
+  robustness_config_sha256: ed20044c10f97c186dc825630efb99a12ef5e0ffb7acc7d6fb2615ed302c9b1a
+  # Retain historical byte hashes for audit. Generated float-bearing files are
+  # gated by the tracked semantic reference below because harmless final-bit
+  # libm/reduction differences can change their serialized bytes across CPUs.
+  processed_file_sha256:
+    features_unscaled.csv: dab4791bdfa7a721017b3da1739c111800927497e88eafb9df82b8c98d9ff12f
+    preprocessing.json: dd48e4bc43308e5b7c5a222f86fc55ab9eedc93b9544c121a03fd0088ab36c87
+    regime_thresholds.json: 8ef5126d83c709ce52b268d6f5178f078c5c3439fc769ce465fe4986782864e8
+    test.csv: a0d11d310bc8af26df39fb3a8e2447d8c2783dcac51e7d90d38de44b0566eb10
+    train.csv: 8da0ecc34f58bdf27f73f50ecf26e1f99cdf5bb295777ec5206887f38a5ea23c
+    validation.csv: 426635e8d171fcdb8a9cafe9bb8b792d982b339bf7e5ff0da708277c9a3e085f
+  processed_semantic_reference: configs/reproduction/processed_data_semantic_reference.json
+  processed_semantic_reference_sha256: 15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11
+  reservoir_seeds: [2026, 2027, 2028]
+  smoke_seeds: [2026]
+architecture:
+  n_qubits: 2
+  virtual_nodes: 2
+  state_policy: reset_each_input
+  tau: 1.0
+  graph: ring
+  j_strength: 1.0
+  h_strength: 1.0
+  input_scaling: 0.5
+  backend: numpy_density_matrix_exact
+  exact_noiseless: true
+  input_reinjection: partial_input_qubit_reinjection
+  observables:
+    single_qubit: analytic_Z_i
+    two_qubit: analytic_unique_Z_i_Z_j
+  raw_feature_dimension: 6
+readout:
+  classifier_selection_metric: macro_f1
+  regressor_selection_metric: qlike
+  ridge_alpha_grid: [1.0e-5, 1.0e-3, 1.0e-1, 1.0]
+  preprocessing_fit_split: train
+  selection_split: validation
+  test_evaluated_after_freeze: true
+selection_evidence:
+  qubit_scaling:
+    path: configs/reproduction/frozen_selection_reference.json
+    sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+    selected_n_qubits: 2
+  encoding_density:
+    path: configs/reproduction/frozen_selection_reference.json
+    sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+    selected_virtual_nodes: 2
+  state_memory:
+    path: configs/reproduction/frozen_selection_reference.json
+    sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+    selected_state_policy: reset_each_input
+  reset_reference:
+    path: configs/reproduction/frozen_selection_reference.json
+    sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+  reproduction_reference:
+    path: configs/reproduction/frozen_selection_reference.json
+    sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+freeze:
+  architecture_frozen: true
+  no_further_test_tuning: true
+  selection_data: validation only
+  test_metrics_inspected_after_validation_decisions: true
+  test_metrics_used_for_selection: false

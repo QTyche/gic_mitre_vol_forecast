@@ -1,0 +1,4 @@
+interface:
+  display_name: "qBraid Phase 3 Reproduction"
+  short_description: "Validate and reproduce frozen Team QTyche Phase 3 evidence"
+  default_prompt: "Use $qbraid-phase3-reproduction to validate or reproduce the frozen Team QTyche Phase 3 submission in a clean qBraid environment."

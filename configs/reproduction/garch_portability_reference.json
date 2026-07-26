@@ -1,0 +1,209 @@
+{
+  "comparison_contract": {
+    "forecast_limits": {
+      "maximum_absolute_difference": 2e-05,
+      "maximum_mean_absolute_difference": 1e-06,
+      "maximum_median_absolute_difference": 5e-07,
+      "maximum_relative_difference": 5e-05,
+      "recomputed_path_absolute_tolerance": 1e-12
+    },
+    "iteration_count_maximum_absolute_difference": 15,
+    "parameter_absolute_tolerances": {
+      "alpha": 5e-06,
+      "beta": 2e-06,
+      "mu": 1e-08,
+      "omega": 2e-10,
+      "persistence": 5e-06,
+      "unconditional_variance": 2e-08
+    },
+    "regression_metric_tolerance": {
+      "absolute": 2.5e-07,
+      "metrics": [
+        "qlike",
+        "rmse",
+        "mae"
+      ],
+      "relative": 0.0
+    },
+    "selected_start_initial_parameter_absolute_tolerance": 1e-12,
+    "training_log_likelihood_absolute_tolerance": 1e-07
+  },
+  "contract_id": "garch_optimizer_portability_v1",
+  "data_snapshot_id": "yahoo_chart_20100101_20251231_v1",
+  "derivation": {
+    "candidate_qbraid_metric_differences": {
+      "mae": 4.137040631943534e-08,
+      "qlike": 8.792821493130987e-08,
+      "rmse": 6.647243633306488e-08
+    },
+    "equivalent_frozen_start_definition": "Converged deterministic starts whose negative log-likelihood is within 2e-8 of the frozen selected optimum.",
+    "equivalent_frozen_start_indices": [
+      0,
+      2,
+      4,
+      5,
+      6,
+      7
+    ],
+    "observed_equivalent_start_envelope": {
+      "forecast_maximum_absolute_difference": 9.289944256640759e-06,
+      "forecast_maximum_mean_absolute_difference": 3.292717905035817e-07,
+      "forecast_maximum_median_absolute_difference": 2.2919757551240205e-07,
+      "forecast_maximum_relative_difference": 1.6287110481272316e-05,
+      "maximum_iteration_count_difference": 5,
+      "parameter_maximum_absolute_differences": {
+        "alpha": 2.545438195777905e-06,
+        "beta": 7.779508968130955e-07,
+        "mu": 3.490827222988116e-09,
+        "omega": 5.779447788477237e-11,
+        "persistence": 1.7674872989648094e-06,
+        "unconditional_variance": 6.029017595075522e-09
+      },
+      "training_log_likelihood_maximum_absolute_difference": 1.909211277961731e-08
+    },
+    "safety_margin": "Limits are rounded upward to at least approximately two times the observed equivalent-start parameter and forecast envelope. The likelihood and iteration limits exceed that envelope by approximately five and three times. The GARCH regression-metric absolute tolerance is 2.84 times the largest reported qBraid metric difference and is available only after all deeper equivalence gates pass.",
+    "source": "Frozen eight-start Gaussian GARCH(1,1) fit and the qBraid Linux/x86 headline failure reported for validation commit 6e25f798bf5d6fa676d5127f008bddab563c7fc3."
+  },
+  "deterministic_start_shapes": [
+    {
+      "alpha": 0.05,
+      "beta": 0.9,
+      "mu": "training_return_mean",
+      "start_index": 0
+    },
+    {
+      "alpha": 0.1,
+      "beta": 0.8,
+      "mu": "training_return_mean",
+      "start_index": 1
+    },
+    {
+      "alpha": 0.15,
+      "beta": 0.7,
+      "mu": "training_return_mean",
+      "start_index": 2
+    },
+    {
+      "alpha": 0.03,
+      "beta": 0.95,
+      "mu": "training_return_mean",
+      "start_index": 3
+    },
+    {
+      "alpha": 0.2,
+      "beta": 0.6,
+      "mu": "training_return_mean",
+      "start_index": 4
+    },
+    {
+      "alpha": 0.05,
+      "beta": 0.9,
+      "mu": "zero",
+      "start_index": 5
+    },
+    {
+      "alpha": 0.1,
+      "beta": 0.8,
+      "mu": "zero",
+      "start_index": 6
+    },
+    {
+      "alpha": 0.2,
+      "beta": 0.6,
+      "mu": "zero",
+      "start_index": 7
+    }
+  ],
+  "display_contract": {
+    "balanced_accuracy": "0.442",
+    "macro_f1": "0.373",
+    "mae": "0.0233",
+    "qlike": "-2.895",
+    "rmse": "0.0740"
+  },
+  "expected_fit": {
+    "convergence_warnings": [],
+    "function_evaluations": 250,
+    "number_of_iterations": 42,
+    "optimiser_message": "CONVERGENCE: RELATIVE REDUCTION OF F <= FACTR*EPSMCH",
+    "optimiser_status": 0,
+    "parameters": {
+      "alpha": 0.18574906285759601,
+      "beta": 0.7822277506445363,
+      "mu": 0.0008155149048568982,
+      "omega": 3.70727441089288e-06,
+      "persistence": 0.9679768135021323,
+      "unconditional_variance": 0.00011576844206742916
+    },
+    "selected_initial_parameters": {
+      "alpha": 0.15,
+      "beta": 0.7,
+      "mu": 0.0004312250615867382,
+      "omega": 1.7975789054699912e-05
+    },
+    "selected_start_index": 2,
+    "training_log_likelihood": 9292.330983596647,
+    "training_return_count": 2768
+  },
+  "expected_rankings": {
+    "balanced_accuracy": [
+      "Logistic regression",
+      "QRC mean",
+      "Regime persistence",
+      "ESN",
+      "GARCH(1,1)",
+      "Majority classifier"
+    ],
+    "macro_f1": [
+      "Logistic regression",
+      "Regime persistence",
+      "QRC mean",
+      "ESN",
+      "GARCH(1,1)",
+      "Majority classifier"
+    ],
+    "mae": [
+      "ESN",
+      "QRC mean",
+      "GARCH(1,1)",
+      "RV persistence"
+    ],
+    "qlike": [
+      "GARCH(1,1)",
+      "ESN",
+      "QRC mean",
+      "RV persistence"
+    ],
+    "rmse": [
+      "ESN",
+      "GARCH(1,1)",
+      "RV persistence",
+      "QRC mean"
+    ]
+  },
+  "expected_test_metrics": {
+    "balanced_accuracy": 0.442395081529003,
+    "macro_f1": 0.3734576364134905,
+    "mae": 0.02332872752499318,
+    "qlike": -2.895255430205964,
+    "rmse": 0.07404303834021334
+  },
+  "model": {
+    "annualization": 252.0,
+    "evaluation_variance_floor": 1e-12,
+    "horizon": 5,
+    "maximum_iterations": 2000,
+    "maximum_starts": 8,
+    "optimiser": "L-BFGS-B",
+    "optimiser_tolerance": 1e-10,
+    "parameter_variance_floor": 1e-12,
+    "stationarity_margin": 1e-06,
+    "type": "gaussian_garch_1_1"
+  },
+  "root_cause": {
+    "classification": "garch_optimizer_equivalent_optimum_portability",
+    "mechanism": "Several fixed-start L-BFGS-B runs terminate at numerically equivalent likelihoods separated by less than 2e-8. Linux/x86 and macOS/ARM floating-point evaluation can alter the final parameter digits or which near-tied start has the smallest objective, producing sub-micro metric changes without changing classifications, displayed values, or rankings.",
+    "scope": "Gaussian GARCH(1,1) optimisation and its recursively propagated variance forecasts only. QRC and publication comparison tolerances remain unchanged."
+  },
+  "schema_version": 1
+}

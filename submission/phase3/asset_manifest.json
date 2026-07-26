@@ -1,0 +1,84 @@
+{
+  "assets": [
+    {
+      "copied_file_sha256": "a8095aac93c0e984397c13833f5faa62a881e4dd96b3b55aa54145a85b95d174",
+      "destination_filename": "figures/financial_comparison.pdf",
+      "directly_included": true,
+      "figure_or_table_number": "Figure 2",
+      "original_repository_path": "paper_assets/figures/publication_figure_2_financial_comparison.pdf",
+      "original_sha256": "4df86f6a34dbe2bc6e91daf6e8385ae2aa491009482101ae58da5142b25444a5",
+      "purpose": "Financial test comparison and Stage 2A uncertainty",
+      "source_experiment": "Frozen financial benchmark and statistical validation",
+      "transformation": "Deterministic paper-local vector regeneration from frozen table and fact values. Plotted estimates and intervals are unchanged; typography is enlarged and the stored empirical zero is displayed at the finite two-sided reporting resolution p<2e-4.",
+      "transformation_sources": [
+        {
+          "path": "paper_assets/tables/publication_table_2_financial_benchmark.json",
+          "sha256": "fe82b17b076bf7188d470b3142acda186338cccdbc42cbea44007ee7a68a70f2"
+        },
+        {
+          "path": "paper_assets/final_results_manifest.json",
+          "sha256": "a6cc26b63c6931e70e07b4c513fded101786c4dc52c0bc115bdc5294cfbe32d8"
+        }
+      ],
+      "transformed": true
+    },
+    {
+      "copied_file_sha256": "fa13341b5d414354bb67e008d1a009c0f271944893b70395968f51dad90c2cee",
+      "destination_filename": "figures/mnist_benchmark.pdf",
+      "directly_included": true,
+      "figure_or_table_number": "Figure 3",
+      "original_repository_path": "paper_assets/figures/publication_figure_4_mnist_benchmark.pdf",
+      "original_sha256": "96eed1a4175cd1928895887da5be8dfae9c916c0719e140c63c4e3169cd77bde",
+      "purpose": "Genuine-MNIST model comparison and controlled robustness",
+      "source_experiment": "Frozen genuine-MNIST benchmark",
+      "transformation": "Deterministic paper-local vector regeneration from frozen table values; only figure dimensions, typography, marker size and line weight change.",
+      "transformation_sources": [
+        {
+          "path": "paper_assets/tables/publication_table_3_mnist_benchmark.json",
+          "sha256": "5a6a8ace43d107cf4c09b6153f0b4cb359e53f0e6f3765396cece1e621e6d202"
+        }
+      ],
+      "transformed": true
+    },
+    {
+      "copied_file_sha256": "ec285f1bc612b1a434210102f039b9fd2a48f90fb00f297ba3733f3b19033008",
+      "destination_filename": "tables/financial_results.tex",
+      "directly_included": true,
+      "figure_or_table_number": "Table 1",
+      "original_repository_path": "paper_assets/tables/publication_table_2_financial_benchmark.json",
+      "original_sha256": "fe82b17b076bf7188d470b3142acda186338cccdbc42cbea44007ee7a68a70f2",
+      "purpose": "Compact two-panel financial benchmark table",
+      "source_experiment": "Frozen financial benchmark",
+      "transformation": "Deterministic field selection and LaTeX formatting by submission/phase3/prepare_assets.py; no numeric recomputation",
+      "transformation_sources": [],
+      "transformed": true
+    },
+    {
+      "copied_file_sha256": "215e0089f49fcb1ccc520d7e3bc072337afd828012d2843110eeddc1d088cee0",
+      "destination_filename": "tables/mnist_results.tex",
+      "directly_included": true,
+      "figure_or_table_number": "Table 2",
+      "original_repository_path": "paper_assets/tables/publication_table_3_mnist_benchmark.json",
+      "original_sha256": "5a6a8ace43d107cf4c09b6153f0b4cb359e53f0e6f3765396cece1e621e6d202",
+      "purpose": "Compact genuine-MNIST model-comparison table",
+      "source_experiment": "Frozen genuine-MNIST benchmark",
+      "transformation": "Deterministic selection of model-comparison rows and LaTeX formatting by submission/phase3/prepare_assets.py; no numeric recomputation",
+      "transformation_sources": [],
+      "transformed": true
+    }
+  ],
+  "generation_command": "python3 submission/phase3/prepare_assets.py",
+  "generator": "submission/phase3/prepare_assets.py",
+  "paper_base_commit": "49c1fde09b56df9a5d9c1bef04dfa039275926b0",
+  "policy": "Frozen source checksums are verified before transformation. Original frozen assets are never edited; every paper-local destination is hash-committed.",
+  "schema_version": 1,
+  "scientific_freeze_commit": "3b562e72c655e6e4fb38b45ec22cfb4a1f96b530",
+  "statistical_display_contract": {
+    "affected_fact_id": "financial.inference.transition_pr_auc.qrc_vs_regime_persistence.holm_p",
+    "frozen_exact_value": 0.0,
+    "implementation": "src/qtyche_qrc/statistics/bootstrap.py::bootstrap_interval",
+    "resampling_repetitions": 10000,
+    "rule": "The frozen strict empirical two-sided value is zero because no opposing-sign draw occurred and the implementation adds no pseudocount. The paper never prints p=0; it reports p<2e-4, the smallest non-zero two-sided value on a 10,000-draw grid. No inferential result changes.",
+    "two_sided_reporting_resolution": 0.0002
+  }
+}

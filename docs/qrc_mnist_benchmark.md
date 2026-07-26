@@ -169,11 +169,12 @@ configuration, validation-only selection rule, and post-freeze test policy.
 Incomplete runs are refitted. Feature caches have separate smoke/full
 namespaces, checksum their arrays, and never consume labels.
 
-For qBraid with Python 3.12:
+For qBraid, first create and activate an empty persistent Python 3.12
+environment with the Environment Manager. CLI flags differ between qBraid
+images, so inspect `qbraid envs create --help` rather than using the older
+YAML-file creation pattern. In the activated environment:
 
 ```bash
-qbraid envs create -n qtyche-qrc-phase3 -f environment-qbraid.yaml -y
-qbraid envs activate qtyche-qrc-phase3
 ./scripts/setup_qbraid.sh
 python scripts/run_qrc_mnist.py --download-only
 python scripts/run_qrc_mnist.py --smoke

@@ -1,0 +1,36 @@
+schema_version: 1
+study:
+  id: gaussian_garch11_public_v1
+  project_root: ../..
+  output_root: results/garch_baseline
+  data_config: configs/data_public_market.yaml
+  data_config_sha256: 07281e4a7c2195f4d7f764cacd83721c36ee254491e9858c09bbcad742e88289
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  processed_manifest_sha256: 97c280252b0aeabc2e524d97da4c152f5a3f11429a223044600dc99a1edafd33
+  # Historical byte hashes remain visible for audit; the compact tracked
+  # semantic reference is the cross-platform generated-data integrity gate.
+  processed_file_sha256:
+    features_unscaled.csv: dab4791bdfa7a721017b3da1739c111800927497e88eafb9df82b8c98d9ff12f
+    preprocessing.json: dd48e4bc43308e5b7c5a222f86fc55ab9eedc93b9544c121a03fd0088ab36c87
+    regime_thresholds.json: 8ef5126d83c709ce52b268d6f5178f078c5c3439fc769ce465fe4986782864e8
+    test.csv: a0d11d310bc8af26df39fb3a8e2447d8c2783dcac51e7d90d38de44b0566eb10
+    train.csv: 8da0ecc34f58bdf27f73f50ecf26e1f99cdf5bb295777ec5206887f38a5ea23c
+    validation.csv: 426635e8d171fcdb8a9cafe9bb8b792d982b339bf7e5ff0da708277c9a3e085f
+  processed_semantic_reference: configs/reproduction/processed_data_semantic_reference.json
+  processed_semantic_reference_sha256: 15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11
+  qrc_selection_summary: configs/reproduction/frozen_selection_reference.json
+  qrc_selection_summary_sha256: 54a6f46af244f249fb62f85cf9a9dd23b0c62f6d1d4c8af634809dc6558b3401
+  public_baseline_results: results/public_market
+  reproduction_final_runs: results/final_financial_qrc/exact/runs
+model:
+  horizon: 5
+  annualization: 252.0
+  stationarity_margin: 1.0e-6
+  parameter_variance_floor: 1.0e-12
+  evaluation_variance_floor: 1.0e-12
+  maximum_iterations: 2000
+  optimiser_tolerance: 1.0e-10
+  maximum_starts: 8
+smoke:
+  training_return_count: 750
+  maximum_starts: 3

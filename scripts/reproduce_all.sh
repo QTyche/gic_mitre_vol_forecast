@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "reproduce_all.sh: not implemented; headline experiments are pending" >&2
-exit 1
-
+repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$repo_dir"
+exec "${PYTHON_BIN:-python}" scripts/reproduce_phase3.py --full "$@"

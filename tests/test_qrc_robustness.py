@@ -12,6 +12,7 @@ from qtyche_qrc.experiments.model_config import load_model_config
 from qtyche_qrc.experiments.qrc_robustness import (
     TASKS,
     RobustnessPoint,
+    _robustness_run_uses_cache,
     aggregate_robustness_rows,
     build_robustness_grid,
     collect_robustness_rows,
@@ -415,6 +416,15 @@ def test_partial_completion_resumes_only_the_missing_readout(tmp_path: Path) -> 
 
     assert completed == {(point.checksum, TASKS[0]): classifier}
     assert pending == ((point, TASKS[1]),)
+
+
+def test_partial_completion_recomputes_a_stale_feature_cache(tmp_path: Path) -> None:
+    point = RobustnessPoint("finite_shot", 2, 2026, 0, 128, 0.0, 0.0)
+    directory = _fake_run(tmp_path, point, TASKS[0])
+    current = f"cache-{point.measurement_config.checksum}"
+
+    assert _robustness_run_uses_cache(directory, current)
+    assert not _robustness_run_uses_cache(directory, "stale-cache")
 
 
 def test_full_resource_estimate_accounts_for_cache_reuse_across_zero_noise_points() -> None:

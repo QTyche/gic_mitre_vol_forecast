@@ -1,0 +1,355 @@
+schema_version: 1
+study:
+  id: phase3_qbraid_clean_room_v1
+  clone_url: https://github.com/QTyche/gic_mitre_vol_forecast.git
+  branch: main
+  submission_commit: cd9fa988f854009e408af1774a97ed663b0e8b86
+  compatible_descendants: true
+  evidence_root: qbraid_evidence/final_clean_room
+  python_minimum: "3.11"
+  python_preferred: "3.12"
+scientific_contract:
+  data_snapshot_id: yahoo_chart_20100101_20251231_v1
+  backend: numpy_density_matrix_exact
+  exact_noiseless_financial_reference: true
+  physical_qpu_execution: false
+  quantum_advantage_claim: false
+  synthetic_fallback_permitted: false
+tolerances:
+  regenerated_metrics:
+    absolute: 1.0e-10
+    relative: 1.0e-9
+    justification: >-
+      Floating-point QRC readouts can differ in final digits across BLAS and CPU
+      implementations. Dataset, configuration and tracked publication files use
+      exact SHA-256 equality.
+  garch_regression_portability:
+    reference: configs/reproduction/garch_portability_reference.json
+    reference_sha256: 05e423fdd0f5a9437e26171f9b21d56ad099907a6a377462321a90f61ce8e7f7
+    scope: [qlike, rmse, mae]
+    activation: >-
+      Available only after the candidate GARCH convergence, deterministic-start
+      or equivalent-optimum, likelihood, parameter, independently reconstructed
+      forecast, date, label, regime, threshold-crossing, floor, displayed-value
+      and ranking checks pass.
+  mnist_exact_portability:
+    reference: configs/reproduction/mnist_exact_portability_reference.json
+    reference_sha256: 535ee338b4374e05d39719e0874802cbc541cefba82774bee4c03341d1bf294a
+    scope:
+      - exact_qrc_mnist_accuracy
+      - exact_qrc_mnist_macro_f1
+      - exact_qrc_mnist_balanced_accuracy
+      - exact_qrc_mnist_macro_roc_auc
+    activation: >-
+      Available only after exact source, subset, index, label, preprocessing,
+      reservoir seed, architecture, feature commitment, scaler, readout
+      parameter, optimiser objective, score, probability, changed prediction,
+      confusion matrix, displayed-value and ranking checks pass. It does not
+      widen the global numeric tolerance.
+runtime_planning:
+  status: planning_only_until_actual_qbraid_measurement
+  environment_install_minutes: [3, 12]
+  fast_verification_minutes: [1, 5]
+  headline_minutes: [8, 35]
+  full_financial_minutes: [20, 90]
+  full_mnist_minutes: [10, 60]
+  statistics_and_publication_minutes: [3, 20]
+  full_total_minutes: [35, 170]
+  disk_gib: [1, 4]
+  peak_memory_gib: [1, 6]
+tiers:
+  verify:
+    - frozen_verification
+    - focused_tests
+  headline:
+    - frozen_verification
+    - focused_tests
+    - public_download
+    - public_prepare
+    - public_audit
+    - processed_semantic_verification
+    - majority_classifier
+    - regime_persistence
+    - logistic_classifier
+    - esn_classifier
+    - rv_persistence
+    - esn_regressor
+    - garch_fit
+    - final_financial_exact
+    - mnist_smoke
+    - headline_comparison
+  full:
+    - frozen_verification
+    - focused_tests
+    - public_download
+    - public_prepare
+    - public_audit
+    - processed_semantic_verification
+    - majority_classifier
+    - regime_persistence
+    - logistic_classifier
+    - esn_classifier
+    - rv_persistence
+    - esn_regressor
+    - esn_regression_diagnostic
+    - garch_fit
+    - final_financial_full
+    - garch_comparison
+    - mnist_full
+    - prepare_full_configs
+    - statistical_validation
+    - benchmark_diagnostics
+    - prepare_publication_config
+    - publication_regeneration
+    - full_comparison
+tasks:
+  frozen_verification:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.reproducibility.verification
+      - --root
+      - .
+      - --output
+      - "{evidence}/fast_verification_report.json"
+    watch:
+      - "{evidence}/fast_verification_report.json"
+  focused_tests:
+    command:
+      - "{python}"
+      - -m
+      - pytest
+      - -q
+      - tests/test_phase3_reproduction.py
+      - tests/test_processed_semantic_integrity.py
+      - tests/test_garch_portability.py
+      - tests/test_mnist_portability.py
+  public_download:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - download-public-data
+      - --config
+      - configs/data_public_market.yaml
+    watch:
+      - data/raw/public_market/yahoo_chart_20100101_20251231_v1
+  public_prepare:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - prepare-data
+      - --config
+      - configs/data_public_market.yaml
+      - --cached
+    watch:
+      - data/processed/public_market
+  public_audit:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - audit-data
+      - --processed-dir
+      - data/processed/public_market
+    watch:
+      - results/data_audit
+  processed_semantic_verification:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.data.semantic_integrity
+      - --processed-dir
+      - data/processed/public_market
+      - --data-config
+      - configs/data_public_market.yaml
+      - --reference
+      - configs/reproduction/processed_data_semantic_reference.json
+      - --reference-sha256
+      - 15c481e160e084f55b72dd4769fed86a9cab270be6293d0dee61bd788abedd11
+      - --output
+      - "{evidence}/processed_data_semantic_verification.json"
+    watch:
+      - "{evidence}/processed_data_semantic_verification.json"
+  majority_classifier:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - train-baseline
+      - --config
+      - configs/models/public_market/majority_classifier.yaml
+    watch: [results/public_market]
+  regime_persistence:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - train-baseline
+      - --config
+      - configs/models/public_market/regime_persistence.yaml
+    watch: [results/public_market]
+  logistic_classifier:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - search-baseline
+      - --config
+      - configs/models/public_market/logistic_regression.yaml
+    watch: [results/public_market]
+  esn_classifier:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - search-baseline
+      - --config
+      - configs/models/public_market/esn_classifier_search.yaml
+    watch: [results/public_market]
+  rv_persistence:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - train-baseline
+      - --config
+      - configs/models/public_market/rv_persistence.yaml
+    watch: [results/public_market]
+  esn_regressor:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - search-baseline
+      - --config
+      - configs/models/public_market/esn_regressor_search.yaml
+    watch: [results/public_market]
+  esn_regression_diagnostic:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.cli
+      - diagnose-esn-regression
+      - --config
+      - configs/models/public_market/esn_regressor_search.yaml
+      - --output-dir
+      - results/diagnostics/esn_regression
+    watch: [results/diagnostics/esn_regression]
+  garch_fit:
+    command:
+      - "{python}"
+      - scripts/run_garch_baseline.py
+      - --config
+      - configs/reproduction/garch_baseline.yaml
+      - --fit-only
+    watch: [results/garch_baseline]
+  final_financial_exact:
+    command:
+      - "{python}"
+      - scripts/run_final_financial_qrc.py
+      - --config
+      - configs/reproduction/final_financial_qrc.yaml
+      - --skip-robustness
+    watch: [results/final_financial_qrc]
+  final_financial_full:
+    command:
+      - "{python}"
+      - scripts/run_final_financial_qrc.py
+      - --config
+      - configs/reproduction/final_financial_qrc.yaml
+    watch: [results/final_financial_qrc]
+  garch_comparison:
+    command:
+      - "{python}"
+      - scripts/run_garch_baseline.py
+      - --config
+      - configs/reproduction/garch_baseline.yaml
+    watch: [results/garch_baseline]
+  mnist_smoke:
+    command:
+      - "{python}"
+      - scripts/run_qrc_mnist.py
+      - --download
+      - --smoke
+    watch:
+      - data/raw/mnist
+      - results/qrc_mnist
+  mnist_full:
+    command:
+      - "{python}"
+      - scripts/run_qrc_mnist.py
+      - --download
+    watch:
+      - data/raw/mnist
+      - results/qrc_mnist
+  headline_comparison:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.reproducibility.artifacts
+      - compare
+      - --mode
+      - headline
+      - --output
+      - "{evidence}/headline_reproduction_report.json"
+    watch:
+      - "{evidence}/garch_portability_report.json"
+      - "{evidence}/headline_reproduction_report.json"
+  prepare_full_configs:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.reproducibility.artifacts
+      - prepare-full
+      - --output-dir
+      - "{evidence}/generated_configs"
+    watch: ["{evidence}/generated_configs"]
+  statistical_validation:
+    command:
+      - "{python}"
+      - scripts/run_statistical_validation.py
+      - --config
+      - "{evidence}/generated_configs/statistical_validation.yaml"
+    watch: [results/statistical_validation]
+  benchmark_diagnostics:
+    command:
+      - "{python}"
+      - scripts/run_benchmark_diagnostics.py
+      - --config
+      - "{evidence}/generated_configs/benchmark_diagnostics.yaml"
+    watch: [results/benchmark_diagnostics]
+  prepare_publication_config:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.reproducibility.artifacts
+      - prepare-publication
+      - --output-dir
+      - "{evidence}/generated_configs"
+      - --publication-output
+      - "{evidence}/regenerated_publication_assets"
+    watch:
+      - "{evidence}/generated_configs/publication_assets.yaml"
+  publication_regeneration:
+    command:
+      - "{python}"
+      - scripts/freeze_publication_assets.py
+      - --config
+      - "{evidence}/generated_configs/publication_assets.yaml"
+    watch: ["{evidence}/regenerated_publication_assets"]
+  full_comparison:
+    command:
+      - "{python}"
+      - -m
+      - qtyche_qrc.reproducibility.artifacts
+      - compare
+      - --mode
+      - full
+      - --output
+      - "{evidence}/full_reproduction_report.json"
+    watch:
+      - "{evidence}/garch_portability_report.json"
+      - "{evidence}/mnist_exact_portability_report.json"
+      - "{evidence}/full_reproduction_report.json"

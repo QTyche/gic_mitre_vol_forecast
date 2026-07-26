@@ -29,6 +29,11 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="fit a new run even when a complete matching run exists",
     )
+    parser.add_argument(
+        "--fit-only",
+        action="store_true",
+        help="fit and evaluate GARCH without requiring downstream comparison runs",
+    )
     return parser
 
 
@@ -41,6 +46,7 @@ def main(argv: list[str] | None = None) -> int:
             config,
             smoke=args.smoke,
             resume=not args.no_resume,
+            write_comparison=not args.fit_only,
         )
     except Exception as exc:
         print(

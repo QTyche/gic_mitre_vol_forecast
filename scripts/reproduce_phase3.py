@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""One non-notebook entry point for Phase 3 smoke, capacity, and public pilot stages."""
+"""Run final Phase 3 clean-room tiers or the retained legacy pilot stages."""
 
 from __future__ import annotations
 
@@ -21,6 +21,10 @@ import yaml
 
 from qtyche_qrc.cli import main as cli_main
 from qtyche_qrc.qbraid import verify_public_pilot_inputs
+from qtyche_qrc.reproducibility.orchestrator import (
+    finalize_artifact_reuse_execution,
+    run_reproduction,
+)
 from qtyche_qrc.runtime import runtime_metadata
 
 PUBLIC_SEEDS = (2026, 2027, 2028)
@@ -277,23 +281,90 @@ def _run_public_pilot(
 
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument(
-        "--stage", required=True, choices=("smoke", "capacity", "public-pilot", "all")
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--verify", action="store_true", help="run fast frozen-contract checks")
+    mode.add_argument("--headline", action="store_true", help="reproduce headline evidence")
+    mode.add_argument("--full", action="store_true", help="run the complete final pipeline")
+    mode.add_argument(
+        "--finalize-artifact-reuse",
+        action="store_true",
+        help=(
+            "rehash a completed failed-at-comparison full run, rerun only verification "
+            "and comparisons, and emit a package-eligible execution report"
+        ),
+    )
+    mode.add_argument(
+        "--stage",
+        choices=("smoke", "capacity", "public-pilot", "all"),
+        help="run a retained legacy Phase 3 pilot stage",
     )
     seeds = parser.add_mutually_exclusive_group()
     seeds.add_argument("--seed", type=int, default=2026)
     seeds.add_argument("--all-seeds", action="store_true")
     parser.add_argument("--summary", type=Path)
+    parser.add_argument(
+        "--config",
+        type=Path,
+        default=Path("configs/phase3_reproduction.yaml"),
+        help="Stage 3A orchestration configuration",
+    )
+    parser.add_argument(
+        "--evidence-dir",
+        type=Path,
+        help="repository-relative evidence directory",
+    )
+    parser.add_argument(
+        "--no-resume",
+        action="store_true",
+        help="recompute selected clean-room tasks instead of verifying and resuming them",
+    )
     return parser
 
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+    root = Path(__file__).resolve().parents[1]
+    if args.finalize_artifact_reuse:
+        config = args.config if args.config.is_absolute() else root / args.config
+        try:
+            report = finalize_artifact_reuse_execution(
+                config,
+                evidence_dir=args.evidence_dir,
+            )
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(
+            json.dumps(
+                {
+                    "status": "success",
+                    "execution_mode": "artifact_reuse_finalization",
+                    "report": report.relative_to(root).as_posix(),
+                }
+            )
+        )
+        return 0
+    tier = (
+        "verify" if args.verify else "headline" if args.headline else "full" if args.full else None
+    )
+    if tier is not None:
+        config = args.config if args.config.is_absolute() else root / args.config
+        try:
+            report = run_reproduction(
+                config,
+                tier=tier,
+                evidence_dir=args.evidence_dir,
+                resume=not args.no_resume,
+            )
+        except Exception as exc:
+            print(f"{type(exc).__name__}: {exc}", file=sys.stderr)
+            return 1
+        print(json.dumps({"status": "success", "report": report.relative_to(root).as_posix()}))
+        return 0
     if args.seed not in PUBLIC_SEEDS:
         raise SystemExit(f"--seed must be one of {PUBLIC_SEEDS}")
     if args.all_seeds and args.stage not in {"public-pilot", "all"}:
         raise SystemExit("--all-seeds is only valid for public-pilot or all")
-    root = Path(__file__).resolve().parents[1]
     os.chdir(root)
     run_started = datetime.now(timezone.utc)
     run_token = run_started.strftime("%Y%m%dT%H%M%S%fZ")
