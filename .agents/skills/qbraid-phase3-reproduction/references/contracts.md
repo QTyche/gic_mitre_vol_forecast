@@ -32,7 +32,7 @@ For the six generated processed financial files, record historical and current
 byte hashes and require the tracked semantic commitments. Columns, row order,
 dates, split membership, labels, missingness, JSON structure, and non-float
 values are exact. Finite numeric values are normalized at 10 significant
-decimal digits, with maximum relative quantization width below `1e-9`; signed
+decimal digits, with maximum relative quantization width at most `1e-9`; signed
 zero is normalized and non-finite data are rejected. This covers platform
 last-bit differences in `log` and reductions without accepting material data
 changes.

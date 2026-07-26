@@ -153,7 +153,7 @@ Generated processed artifacts therefore retain both historical and current
 byte SHA-256 values but are gated by
 `configs/reproduction/processed_data_semantic_reference.json`. The canonical
 rule parses finite numbers, normalizes signed zero, and commits values at 10
-significant decimal digits, whose maximum relative quantization width is below
+significant decimal digits, whose maximum relative quantization width is at most
 `1e-9`. Row counts, column names and order, date sequences, row order,
 date/split membership, integral labels, missing-value positions, threshold and
 preprocessing JSON structure, and all non-float values remain exact. A mismatch

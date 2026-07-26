@@ -79,7 +79,7 @@ operations can differ in final binary digits; 12-digit CSV output and
 full-round-trip preprocessing JSON turn those harmless differences into
 different byte hashes. All historical and current byte hashes remain recorded,
 but generated processed data pass only if their tracked semantic digests match.
-Ten-significant-digit canonicalization has a relative quantization width below
+Ten-significant-digit canonicalization has a relative quantization width at most
 `1e-9`; non-finite values are rejected, and any material value, threshold,
 date, label, split, missingness, row, or schema change is fatal. Regenerated
 metrics separately use a declared `1e-10` absolute plus `1e-9` relative
